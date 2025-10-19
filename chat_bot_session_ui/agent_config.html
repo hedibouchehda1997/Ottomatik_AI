@@ -1,0 +1,684 @@
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        height: 100vh;
+        min-height: 100vh;
+        background: #f7f9fb;
+    }
+    .app-root-flex {
+        display: flex;
+        width: 100vw;
+        min-height: 100vh;
+        background: #f7f9fb;
+    }
+    .sidebar-modern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        max-width: 240px;
+        min-width: 180px;
+        background: linear-gradient(120deg, #e4edfb 60%, #f4f7fa 100%);
+        box-shadow: 2px 0 16px -7px #739ccd20;
+        border-right: 1.5px solid #e6eaf4;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 2.4rem 0 2rem 0;
+        z-index: 3;
+        transition: all 0.33s cubic-bezier(.46,0,.13,1);
+    }
+    .sidebar-brand {
+        color: #3667ad;
+        font-weight: bold;
+        font-size: 1.24em;
+        letter-spacing: 0.03em;
+        padding: 0 2.2rem 2.5rem 2.2rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+    }
+    .sidebar-nav {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 0.7rem 0 0.7rem;
+    }
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.88em;
+        font-size: 1.1em;
+        font-weight: 500;
+        background: transparent;
+        border: none;
+        color: #254874;
+        padding: 0.94em 1.1em 0.94em 1.3em;
+        border-radius: 0.66em;
+        cursor: pointer;
+        margin-bottom: 0.23em;
+        transition: background 0.14s, color 0.16s, box-shadow 0.12s;
+        text-align: left;
+        outline: none;
+        box-shadow: 0 1.5px 10px 0 #b8c9ed15;
+        position: relative;
+        text-decoration: none;
+    }
+    .sidebar-nav-link.active, .sidebar-nav-link:focus, .sidebar-nav-link:hover {
+        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 12px #c4def612;
+    }
+    .sidebar-nav-link .sidebar-emoji {
+        font-size: 1.16em;
+        margin-right: 0.3em;
+    }
+
+    .main-content {
+        margin-left: 220px;
+        padding: 0;
+        flex: 1 1 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        background: #f8fafc;
+        height: 100vh;
+        box-sizing: border-box;
+    }
+    .agent-config-form {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2.1em;
+        width: 100%;
+        max-width: 100vw;
+        margin: 0;
+        background: #fff;
+        border-radius: 1.2em;
+        box-shadow: 0 2px 22px #719de81a;
+        padding: 2.7rem 2.5rem 2.2rem 2.5rem;
+        min-height: 0; /* Allows flex shrinking if needed */
+        min-width: 0;
+        box-sizing: border-box;
+        /* Remove vertical centering and margin */
+    }
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.34em;
+    }
+    .field-label {
+        font-size: 1.13em;
+        color: #2c4e80;
+        font-weight: 600;
+        margin-bottom: 0.31em;
+        letter-spacing: 0.01em;
+    }
+    .field-select, .field-input, .field-textarea {
+        font-size: 1.08em;
+        padding: 0.76em 1.1em;
+        border: 1.5px solid #bdd9f7;
+        border-radius: 0.75em;
+        background: #f7fcff;
+        color: #234c7b;
+        outline: none;
+        transition: border-color 0.15s;
+        font-family: inherit;
+        margin-bottom: 0;
+        min-width: 0;
+    }
+    .field-select:focus, .field-input:focus, .field-textarea:focus {
+        border-color: #3667ad;
+        background: #f3f7fb;
+    }
+    .field-textarea {
+        min-height: 190px;
+        resize: vertical;
+        font-size: 1.08em;
+        font-family: inherit;
+        line-height: 1.45;
+    }
+    .tools-select-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        margin-top: 0.23em;
+    }
+    .selected-tools-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5em;
+        margin-top: 0.5em;
+        min-height: 2.1em;
+    }
+    .tool-chip {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(93deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        border: 1.2px solid #bdd9f7;
+        border-radius: 2em;
+        padding: 0.25em 0.86em 0.25em 0.9em;
+        font-size: 1.00em;
+        font-weight: 500;
+        margin: 0 0.04em;
+        box-shadow: 0 1px 6px #b6e8fc16;
+        position: relative;
+    }
+    .tool-chip .remove-tool-btn {
+        color: #3667ad;
+        background: none;
+        border: none;
+        padding: 0.1em 0.52em 0.1em 0.23em;
+        cursor: pointer;
+        font-size: 1.05em;
+        font-weight: bold;
+        outline: none;
+        margin-left: 0.3em;
+        border-radius: 1em;
+        transition: background 0.15s;
+    }
+    .tool-chip .remove-tool-btn:hover,
+    .tool-chip .remove-tool-btn:focus {
+        background: #e4ecfa;
+        color: #21528f;
+    }
+
+    /* Modern and coherent button group for Agent Config form */
+    .config-btn-group,
+    .config-btn-group.versioning-action-group {
+        display: flex;
+        gap: 1em;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 1.5em;
+        margin-bottom: 0.2em;
+    }
+    .config-btn {
+        padding: 0.7em 2em;
+        border-radius: 0.8em;
+        border: none;
+        outline: none;
+        font-size: 1.1em;
+        font-weight: 600;
+        background: linear-gradient(95deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 10px 0 #c3e8fa18;
+        cursor: pointer;
+        letter-spacing: 0.01em;
+        transition: background 0.18s, color 0.14s, box-shadow 0.17s, transform 0.17s;
+        border: 1.5px solid #bdd9f7;
+    }
+    .config-btn:hover, .config-btn:focus {
+        background: linear-gradient(92deg,#e4edfb 60%, #e0f7fa 100%);
+        color: #21528f;
+        box-shadow: 0 2.5px 16px #b7e0fd24;
+        transform: translateY(-1px) scale(1.01);
+    }
+    .config-btn.apply {
+        background: linear-gradient(90deg,#cbefff 70%,#bfdafc 100%);
+        color: #2467ac;
+        border-color: #add8fb;
+    }
+    .config-btn.apply:hover, .config-btn.apply:focus {
+        background: linear-gradient(88deg,#afd7fa 60%,#c1f1ff 100%);
+        color: #234c7b;
+        box-shadow: 0 3px 18px #aee5ff22;
+    }
+    .config-btn.cancel {
+        background: linear-gradient(93deg,#f8fafb 60%,#eaf3ff 100%);
+        color: #2c4e80;
+        border-color: #bdd9f7;
+    }
+    .config-btn.cancel:hover, .config-btn.cancel:focus {
+        background: linear-gradient(94deg,#eaf3ff 80%,#f7f9fb 100%);
+        color: #254874;
+    }
+    .config-btn.create {
+        background: linear-gradient(90deg,#cbefff 70%,#bfdafc 100%);
+        color: #2467ac;
+        border-color: #add8fb;
+    }
+    .config-btn.create:hover, .config-btn.create:focus {
+        background: linear-gradient(88deg,#afd7fa 60%,#c1f1ff 100%);
+        color: #234c7b;
+        box-shadow: 0 3px 18px #aee5ff22;
+    }
+    @media (max-width: 940px) {
+        .main-content {
+            margin-left: 0;
+            width: 100vw;
+            padding: 0.9em;
+        }
+        .agent-config-form {
+            padding: 1.4rem 0.8rem 1.3rem 0.8rem;
+            margin-top: 0;
+            min-width: 0;
+            min-height: 0;
+            max-width: 100vw;
+        }
+        .config-btn-group,
+        .config-btn-group.versioning-action-group {
+            flex-direction: column;
+            gap: 0.7em;
+            align-items: stretch;
+        }
+    }
+</style>
+
+<div class="app-root-flex">
+    <nav class="sidebar-modern" id="app-sidebar">
+        <div class="sidebar-brand">
+            <span style="font-size:1.45em;filter:drop-shadow(0 2px 8px #94bdf854);">🤖</span>
+            <span>Assistant Suite</span>
+        </div>
+        <div class="sidebar-nav">
+            <a href="#" class="sidebar-nav-link" data-section="tests">
+                <span class="sidebar-emoji">🧪</span>
+                Tests
+            </a>
+            <a href="#" class="sidebar-nav-link active" data-section="agent">
+                <span class="sidebar-emoji">⚙️</span>
+                Agent Configuration
+            </a>
+            <a href="#" class="sidebar-nav-link" data-section="chat">
+                <span class="sidebar-emoji">💬</span>
+                Live Chat
+            </a>
+        </div>
+    </nav>
+    <main class="main-content">
+        <form class="agent-config-form" autocomplete="off" onsubmit="event.preventDefault();">
+            <div class="field-group">
+                <label for="agent-type" class="field-label">Agent Type</label>
+                <select id="agent-type" class="field-select">
+                    <option value="React">React</option>
+                    <option value="Tool Calling">Tool Calling</option>
+                    <option value="Plan and Execute">Plan and Execute</option>
+                    <option value="Self Reflection">Self Reflection</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label for="model" class="field-label">Model</label>
+                <select id="model" class="field-select">
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    <option value="gpt-4">gpt-4</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label for="system-prompt" class="field-label">System Prompt</label>
+                <textarea id="system-prompt" class="field-textarea" placeholder="Enter system prompt here..."></textarea>
+            </div>
+            <div class="field-group tools-select-group">
+                <label for="tools-combo" class="field-label">Tools</label>
+                <select id="tools-combo" class="field-select">
+                    <option value="" selected disabled>Select a tool...</option>
+                    <option value="tavily search">Tavily Search</option>
+                    <option value="calculate">Calculate</option>
+                </select>
+                <div class="selected-tools-list" id="selected-tools-list">
+                    <!-- Selected tools will appear here -->
+                </div>
+            </div>
+            <!-- Modern button group added here -->
+            <div class="config-btn-group" id="main-action-group">
+                <button type="button" class="config-btn" id="btn-versioning" onclick="OnVersionningClicked()">Versioning</button>
+                <button type="button" class="config-btn apply" id="btn-apply" onclick="OnApplyClicked()">Apply</button>
+            </div>
+        </form>
+    </main>
+</div>
+<script>
+    // Sidebar section logging (unchanged)
+    function logSidebarSectionName(node) {
+        let text = "";
+        node.childNodes.forEach(child => {
+            if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
+                text += child.textContent.trim();
+            }
+        });
+        if (!text) {
+            text = node.textContent.trim();
+        }
+        if (text == "Tests") {
+            window.location.href = "/tests";
+        } else if (text == "Live Chat") {
+            window.location.href = "/chat"
+        }
+    }
+
+    //---- Versioning form logic ----
+    function cloneFieldGroup({labelText, labelFor, inputElem}) {
+        const group = document.createElement("div");
+        group.className = "field-group";
+        const label = document.createElement("label");
+        label.className = "field-label";
+        label.setAttribute("for", labelFor);
+        label.textContent = labelText;
+        group.appendChild(label);
+        group.appendChild(inputElem);
+        return group;
+    }
+
+    function cloneSelect(originalId, newId) {
+        const orig = document.getElementById(originalId);
+        const clone = orig.cloneNode(true);
+        clone.id = newId;
+        return clone;
+    }
+
+    function cloneTextarea(originalId, newId, placeholder = "") {
+        const orig = document.getElementById(originalId);
+        const clone = orig.cloneNode(true);
+        clone.id = newId;
+        clone.value = "";
+        if (placeholder) clone.placeholder = placeholder;
+        return clone;
+    }
+
+    function cloneToolsFieldGroup() {
+        // Clone tools group (field-group tools-select-group), and tweak for new version
+        const origGroup = document.querySelector(".tools-select-group");
+        const group = document.createElement("div");
+        group.className = "field-group tools-select-group";
+        // New label
+        const label = document.createElement("label");
+        label.className = "field-label";
+        label.setAttribute("for", "new-tools-combo");
+        label.textContent = "New Tools";
+        // New select
+        const select = document.createElement("select");
+        select.className = "field-select";
+        select.id = "new-tools-combo";
+        select.innerHTML = `
+            <option value="" selected disabled>Select a tool...</option>
+            <option value="tavily search">Tavily Search</option>
+            <option value="calculate">Calculate</option>
+        `;
+        // New selected tools container
+        const selectedList = document.createElement("div");
+        selectedList.className = "selected-tools-list";
+        selectedList.id = "new-selected-tools-list";
+        group.appendChild(label);
+        group.appendChild(select);
+        group.appendChild(selectedList);
+        return group;
+    }
+
+    // Button event methods
+    function OnVersionningClicked() {
+        // Remove Versioning and Apply button group
+        const mainActionGroup = document.getElementById("main-action-group");
+        if (mainActionGroup) {
+            mainActionGroup.remove();
+        }
+        // Get the form element
+        const form = document.querySelector('.agent-config-form');
+        // Insert fields after the last field group
+        // 1. New Agent Type
+        const newAgentTypeGroup = cloneFieldGroup({
+            labelText: "New Agent Type",
+            labelFor: "new-agent-type",
+            inputElem: (() => {
+                const select = cloneSelect("agent-type", "new-agent-type");
+                return select;
+            })()
+        });
+        // 2. New Model
+        const newModelGroup = cloneFieldGroup({
+            labelText: "New Model",
+            labelFor: "new-model",
+            inputElem: (() => {
+                const select = cloneSelect("model", "new-model");
+                return select;
+            })()
+        });
+        // 3. New System Prompt
+        const newPromptGroup = cloneFieldGroup({
+            labelText: "New System Prompt",
+            labelFor: "new-system-prompt",
+            inputElem: (() => {
+                const textarea = cloneTextarea("system-prompt", "new-system-prompt", "Enter new system prompt here...");
+                return textarea;
+            })()
+        });
+        // 4. New Tools
+        const newToolsGroup = cloneToolsFieldGroup();
+
+        // Insert after the last tools group
+        form.appendChild(newAgentTypeGroup);
+        form.appendChild(newModelGroup);
+        form.appendChild(newPromptGroup);
+        form.appendChild(newToolsGroup);
+
+        // Add the action buttons: Cancel and Create New Version
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "config-btn-group versioning-action-group";
+        btnGroup.id = "versioning-action-group";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.type = "button";
+        cancelBtn.className = "config-btn cancel";
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.onclick = function() {
+            // Remove newly added fields and the group itself
+            newAgentTypeGroup.remove();
+            newModelGroup.remove();
+            newPromptGroup.remove();
+            newToolsGroup.remove();
+            btnGroup.remove();
+            // Restore buttons
+            restoreMainActionButtons();
+        };
+
+        const createBtn = document.createElement("button");
+        createBtn.type = "button";
+        createBtn.className = "config-btn create";
+        createBtn.textContent = "Create New Version";
+        createBtn.onclick = function() {
+            // ---------- BEGIN REWRITE FOR INSTRUCTION ----------
+            // Collect old and new values for comparison
+
+            // 1. Get old values
+            const oldAgentType = document.getElementById("agent-type").value;
+            const oldModel = document.getElementById("model").value;
+            const oldPrompt = document.getElementById("system-prompt").value;
+
+            // Gather current selected tools (for old)
+            const oldSelectedTools = [];
+            const selectedToolsList = document.getElementById("selected-tools-list");
+            if (selectedToolsList) {
+                const chips = selectedToolsList.querySelectorAll('.tool-chip');
+                chips.forEach(function(chip) {
+                    // Don't include the "x" text
+                    let textNodes = Array.from(chip.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
+                    let name = textNodes.map(n => n.textContent.trim()).join(' ');
+                    if (name) oldSelectedTools.push(name);
+                });
+            }
+
+            // 2. Get new values
+            const newAgentType = document.getElementById("new-agent-type").value;
+            const newModel = document.getElementById("new-model").value;
+            const newPrompt = document.getElementById("new-system-prompt").value;
+
+            // Gather new selected tools
+            const newSelectedTools = [];
+            const newSelectedToolsList = document.getElementById("new-selected-tools-list");
+            if (newSelectedToolsList) {
+                const chips = newSelectedToolsList.querySelectorAll('.tool-chip');
+                chips.forEach(function(chip) {
+                    let textNodes = Array.from(chip.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
+                    let name = textNodes.map(n => n.textContent.trim()).join(' ');
+                    if (name) newSelectedTools.push(name);
+                });
+            }
+
+            // Compare "oldSelectedTools" and "newSelectedTools" as arrays (order and contents)
+            function arraysEqual(arr1, arr2) {
+                if (arr1.length !== arr2.length) return false;
+                for (let i = 0; i < arr1.length; i++) {
+                    if (arr1[i] !== arr2[i]) return false;
+                }
+                return true;
+            }
+
+            // Compare everything
+            const allSame =
+                oldAgentType === newAgentType &&
+                oldModel === newModel &&
+                oldPrompt === newPrompt &&
+                arraysEqual(oldSelectedTools, newSelectedTools);
+
+            if (allSame) {
+                console.log("they're all the same");
+            } else {
+                console.log("there's a change!!");
+            }
+            // ---------- END REWRITE FOR INSTRUCTION ----------
+        };
+
+        btnGroup.appendChild(cancelBtn);
+        btnGroup.appendChild(createBtn);
+        form.appendChild(btnGroup);
+
+        // New tools select logic
+        const newToolsCombo = document.getElementById("new-tools-combo");
+        const newSelectedToolsList = document.getElementById("new-selected-tools-list");
+        let newSelectedTools = [];
+
+        function renderNewSelectedTools() {
+            newSelectedToolsList.innerHTML = "";
+            if (newSelectedTools.length === 0) {
+                newSelectedToolsList.style.minHeight = "2.1em";
+            }
+            newSelectedTools.forEach(function(tool, idx) {
+                const chip = document.createElement("div");
+                chip.className = "tool-chip";
+                chip.textContent = capitalize(tool);
+
+                const removeBtn = document.createElement("button");
+                removeBtn.className = "remove-tool-btn";
+                removeBtn.type = "button";
+                removeBtn.title = "Remove";
+                removeBtn.innerHTML = "&times;";
+                removeBtn.onclick = function() {
+                    newSelectedTools.splice(idx, 1);
+                    renderNewSelectedTools();
+                };
+                chip.appendChild(removeBtn);
+                newSelectedToolsList.appendChild(chip);
+            });
+        }
+        function capitalize(txt) {
+            if (!txt) return '';
+            if (txt.toLowerCase() === "tavily search") return "Tavily Search";
+            if (txt.toLowerCase() === "calculate") return "Calculate";
+            return txt.charAt(0).toUpperCase() + txt.slice(1);
+        }
+        newToolsCombo.addEventListener("change", function() {
+            const value = newToolsCombo.value;
+            if (value && !newSelectedTools.includes(value)) {
+                newSelectedTools.push(value);
+                renderNewSelectedTools();
+            }
+            // Reset dropdown to "Select..." after selection
+            newToolsCombo.selectedIndex = 0;
+        });
+        renderNewSelectedTools();
+    }
+
+    function restoreMainActionButtons() {
+        const form = document.querySelector('.agent-config-form');
+        // Recreate button group with both buttons
+        const mainActionGroup = document.createElement("div");
+        mainActionGroup.className = "config-btn-group";
+        mainActionGroup.id = "main-action-group";
+        const verBtn = document.createElement("button");
+        verBtn.type = "button";
+        verBtn.className = "config-btn";
+        verBtn.id = "btn-versioning";
+        verBtn.onclick = OnVersionningClicked;
+        verBtn.textContent = "Versioning";
+        const applyBtn = document.createElement("button");
+        applyBtn.type = "button";
+        applyBtn.className = "config-btn apply";
+        applyBtn.id = "btn-apply";
+        applyBtn.onclick = OnApplyClicked;
+        applyBtn.textContent = "Apply";
+        mainActionGroup.appendChild(verBtn);
+        mainActionGroup.appendChild(applyBtn);
+        form.appendChild(mainActionGroup);
+    }
+
+    function OnApplyClicked() {
+        console.log("Apply");
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
+        sidebarLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                logSidebarSectionName(this);
+            });
+        });
+
+        // ---- Agent Config Form logic ----
+        const toolsCombo = document.getElementById("tools-combo");
+        const selectedToolsList = document.getElementById("selected-tools-list");
+        let selectedTools = [];
+
+        function renderSelectedTools() {
+            selectedToolsList.innerHTML = "";
+            if (selectedTools.length === 0) {
+                selectedToolsList.style.minHeight = "2.1em";
+            }
+            selectedTools.forEach(function(tool, idx) {
+                const chip = document.createElement("div");
+                chip.className = "tool-chip";
+                chip.textContent = capitalize(tool);
+
+                const removeBtn = document.createElement("button");
+                removeBtn.className = "remove-tool-btn";
+                removeBtn.type = "button";
+                removeBtn.title = "Remove";
+                removeBtn.innerHTML = "&times;";
+                removeBtn.onclick = function() {
+                    selectedTools.splice(idx, 1);
+                    renderSelectedTools();
+                };
+                chip.appendChild(removeBtn);
+                selectedToolsList.appendChild(chip);
+            });
+        }
+
+        function capitalize(txt) {
+            if (!txt) return '';
+            if (txt.toLowerCase() === "tavily search") return "Tavily Search";
+            if (txt.toLowerCase() === "calculate") return "Calculate";
+            return txt.charAt(0).toUpperCase() + txt.slice(1);
+        }
+
+        toolsCombo.addEventListener("change", function() {
+            const value = toolsCombo.value;
+            if (value && !selectedTools.includes(value)) {
+                selectedTools.push(value);
+                renderSelectedTools();
+            }
+            // Reset dropdown to "Select..." after selection
+            toolsCombo.selectedIndex = 0;
+        });
+
+        renderSelectedTools();
+    });
+</script>

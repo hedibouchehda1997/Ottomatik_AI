@@ -1,0 +1,792 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f7f9fb;
+    }
+    .app-root-flex {
+        display: flex;
+        width: 100vw;
+        min-height: 100vh;
+        background: #f7f9fb;
+    }
+    .sidebar-modern {
+        flex: 0 0 220px;
+        max-width: 240px;
+        min-width: 180px;
+        background: linear-gradient(120deg, #e4edfb 60%, #f4f7fa 100%);
+        box-shadow: 2px 0 16px -7px #739ccd20;
+        border-right: 1.5px solid #e6eaf4;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 2.4rem 0 2rem 0;
+        z-index: 3;
+        transition: all 0.33s cubic-bezier(.46,0,.13,1);
+    }
+    .sidebar-brand {
+        color: #3667ad;
+        font-weight: bold;
+        font-size: 1.24em;
+        letter-spacing: 0.03em;
+        padding: 0 2.2rem 2.5rem 2.2rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+    }
+    .sidebar-nav {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 0.7rem 0 0.7rem;
+    }
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.88em;
+        font-size: 1.1em;
+        font-weight: 500;
+        background: transparent;
+        border: none;
+        color: #254874;
+        padding: 0.94em 1.1em 0.94em 1.3em;
+        border-radius: 0.66em;
+        cursor: pointer;
+        margin-bottom: 0.23em;
+        transition: background 0.14s, color 0.16s, box-shadow 0.12s;
+        text-align: left;
+        outline: none;
+        box-shadow: 0 1.5px 10px 0 #b8c9ed15;
+        position: relative;
+        text-decoration: none;
+    }
+    .sidebar-nav-link.active, .sidebar-nav-link:focus, .sidebar-nav-link:hover {
+        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 12px #c4def612;
+    }
+    .sidebar-nav-link .sidebar-emoji {
+        font-size: 1.16em;
+        margin-right: 0.3em;
+    }
+
+    /* Chat Layout */
+    .chatbot-main-section {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: linear-gradient(110deg, #f7fbff 80%, #eaf4fb 100%);
+    }
+
+    /* Action Bar Styles */
+    .action-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.2em;
+        font-size: 1.17em;
+        color: #3360a4;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        background: linear-gradient(90deg, #f1f7fc 75%, #e9f3fd 100%);
+        padding: 0.72em 1.3em;
+        border-bottom: 1.5px solid #e6effc;
+        user-select: none;
+        min-height: 2.1em;
+        box-shadow: 0 4px 28px -18px #96bde80f;
+    }
+    .action-bar-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65em;
+        font-size: 1.15em;
+    }
+    .action-bar-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.45em;
+    }
+    .action-bar-btn {
+        background: #f7fcff;
+        border: 1.2px solid #bdd9f7;
+        color: #376ab1;
+        border-radius: 1.14em;
+        padding: 0.46em 1.12em;
+        font-size: 0.97em;
+        font-weight: 500;
+        margin: 0 0.05em;
+        cursor: pointer;
+        box-shadow: 0 1px 7px #b6e8fc22;
+        transition: background 0.13s, border-color 0.14s, color 0.14s;
+    }
+    .action-bar-btn.active,
+    .action-bar-btn:hover,
+    .action-bar-btn:focus {
+        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
+        border-color: #4db4ef;
+        color: #21528f;
+        outline: none;
+    }
+
+    @media (max-width: 940px) {
+        .action-bar, .chatbot-footer {
+            padding-left: 1em;
+            padding-right: 1em;
+        }
+        .chat-window, .chat-message-row {
+            padding-left: 0.7em;
+            padding-right: 0.7em;
+        }
+    }
+    @media (max-width: 600px) {
+        .action-bar, .chatbot-footer {
+            padding-left: 0.2em;
+            padding-right: 0.2em;
+            font-size: 1em;
+        }
+        .chat-window, .chat-message-row {
+            padding-left: 0.1em;
+            padding-right: 0.1em;
+        }
+        .chat-message-bubble {
+            font-size: 1em;
+            padding: 0.8em 1em;
+        }
+        .chatbot-input {
+            font-size: 1em;
+            padding: 0.7em 1em;
+        }
+        .chatbot-send-btn {
+            font-size: 1em;
+            padding: 0.7em 1em;
+        }
+        .action-bar {
+            padding-top: 0.45em;
+            padding-bottom: 0.45em;
+            min-height: 1.4em;
+        }
+    }
+    .chat-window {
+        flex: 1 1 0;
+        padding: 1.5em 0 0.7em 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.35em;
+        background: none;
+    }
+    .chat-message-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        padding: 0 2.1em;
+    }
+    .chat-message-bubble {
+        display: block;
+        width: 100%;
+        padding: 1em 1.25em;
+        border-radius: 1.1em 1.1em 1.15em 1.15em;
+        font-size: 1.09em;
+        max-width: 100%;
+        box-shadow: 0 2px 10px #bfdffa28;
+        margin-bottom: 0.16em;
+        margin-left: 0;
+        margin-right: 0;
+        /* Make message fill the width like ChatGPT/Claude */
+    }
+    .chat-message.user .chat-message-bubble {
+        background: linear-gradient(90deg,#e6f2ff 65%,#e0fcfd 100%);
+        color: #244a7a;
+        border-top-right-radius: 0.35em;
+        border: 1px solid #c2d9fa;
+        margin-left: 0;
+    }
+    .chat-message.bot .chat-message-bubble {
+        background: linear-gradient(90deg,#e4f5ec 80%,#cdf1fa 100%);
+        color: #247a57;
+        border-top-left-radius: 0.35em;
+        border: 1px solid #bce6db;
+        margin-right: 0;
+    }
+    .chat-message-emoji {
+        font-size: 1.33em;
+        margin-right: 0.43em;
+        vertical-align: middle;
+        filter: drop-shadow(0 0.07em 2px #ffffff80);
+    }
+    .chatbot-footer {
+        padding: 1.35em 2em 1.7em 2em;
+        background: none;
+        border-top: 1px solid #e9effc;
+        display: flex;
+        align-items: flex-end;
+        gap: 1em;
+    }
+    .chatbot-input-box {
+        flex: 1 1 0;
+        display: flex;
+        position: relative;
+    }
+    .chatbot-input {
+        width: 100%;
+        padding: 1em 1.2em 1em 1.2em;
+        font-size: 1.12em;
+        border-radius: 1.6em;
+        border: 1.2px solid #b6d2f7;
+        background: #f9fbff;
+        color: #284b71;
+        outline: none;
+        box-shadow: 0 2px 10px #b6e8fc11;
+        transition: border-color 0.19s, box-shadow 0.18s;
+    }
+    .chatbot-input:focus {
+        border-color: #66a9ee;
+        box-shadow: 0 2px 14px #b4dffc28;
+        background: #f2faff;
+    }
+    .chatbot-send-btn {
+        margin-left: 0.65em;
+        padding: 0.86em 1.36em;
+        border-radius: 1.4em;
+        background: linear-gradient(90deg,#53bbff 70%,#7efce5 100%);
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.08em;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 12px #b6e6fa39;
+        transition: background 0.16s, opacity 0.18s;
+        opacity: 0.95;
+    }
+    .chatbot-send-btn:active {
+        opacity: 0.8;
+        background: linear-gradient(90deg,#409fd7 68%,#4aeed0 100%);
+    }
+    /* Code Editor section */
+    #code-section {
+        display: none;
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+        background: #f7f9fb; /* Set to match chatbot panel's bg-light */
+        position: relative;
+    }
+    #monaco-editor-container {
+        width: 100%;
+        height: 100%;
+        min-height: 280px;
+        background: #f7f9fb;
+        border-radius: 0.8em;
+        box-shadow: 0 3px 18px #b7c7e944;
+        border: 1.5px solid #e7eaf2;
+    }
+
+    /* -------- Logger Page Styles -------- */
+    #logger-section {
+        display: none;
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+        background: #f7f9fb;
+        flex-direction: column;
+        padding: 1em 0 1em 0; /* reduced vertical padding */
+        gap: 0.85em;          /* smaller, uniform spacing between log blocks */
+        overflow-y: auto;
+        align-items: stretch;  /* keep this so log-blocks stretch */
+    }
+
+    .log-block {
+        width: 100%;
+        max-width: none;
+        margin: 0 0 0 0; /* remove bottom margin; use parent gap for spacing */
+        box-shadow: 0 2px 14px #d0e7ff1c;
+        border-radius: 1em;
+        overflow: hidden;
+        font-size: 1.07em;
+        transition: box-shadow 0.16s;
+    }
+    /* Collapsible Info */
+    .log-collapsed-info {
+        background: linear-gradient(90deg,#eaf3ff 65%,#e3eefb 100%);
+        border: 1.7px solid #b9dafc;
+        color: #254874;
+        box-shadow: 0 2px 14px #bcdfff1c;
+        padding: 0;
+        position: relative;
+    }
+    .log-collapsed-header {
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1.06em;
+        padding: 0.75em 1.3em;      /* reduced padding for header */
+        display: flex;
+        align-items: center;
+        gap: 1em;
+        border-bottom: 1px solid #e1eaf6;
+        user-select: none;
+        background: none;
+        color: #21528f;
+        transition: background 0.13s;
+    }
+    .log-collapsed-header:hover {
+        background: #f3fafe;
+    }
+    .log-arrow {
+        display: inline-block;
+        font-size: 1.18em;
+        margin-right: 0.6em;
+        transition: transform 0.19s;
+    }
+    .log-collapsed-body {
+        padding: 0.72em 1.3em 0.86em 1.3em;   /* reduced body padding for compact spacing */
+        color: #305173;
+        line-height: 1.7;
+        background: none;
+    }
+    .log-collapsed-info.collapsed .log-collapsed-body {
+        display: none;
+    }
+    .log-collapsed-info.collapsed .log-arrow {
+        transform: rotate(-90deg);
+    }
+
+    /* Simple Info */
+    .log-info {
+        background: #fff;
+        color: #275082;
+        border: 1.5px solid #deebfa;
+        box-shadow: 0 2px 16px #c6dffe13;
+        padding: 0.72em 1.3em;    /* reduced to match header/body of collapsed info */
+        font-weight: 500;
+        border-radius: 1em;
+        line-height: 1.7;
+        position: relative;
+    }
+
+    /* Warning */
+    .log-warning {
+        background: linear-gradient(90deg,#fffbe7 70%,#fcf6ca 100%);
+        color: #83660a;
+        border: 1.5px solid #fae6bb;
+        box-shadow: 0 4px 18px -4px #ffe9a759;
+        padding: 0.72em 1.3em;    /* reduced and uniform */
+        font-weight: 500;
+        border-radius: 1em;
+        line-height: 1.7;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.77em;
+    }
+    .log-warning-icon {
+        font-size: 1.35em;
+        margin-right: 0.4em;
+        margin-top: 0.06em;
+        flex-shrink: 0;
+        color: #cf7f09;
+        text-shadow: 0 0.1em 8px #ffe13b25;
+    }
+
+    /* Error */
+    .log-error {
+        background: linear-gradient(90deg,#ffebee 70%, #ffd5d580 100%);
+        color: #c92828;
+        border: 1.7px solid #ffbec6;
+        box-shadow: 0 4px 24px -4px #ec838316;
+        padding: 0.72em 1.3em;   /* reduced and uniform */
+        font-weight: 600;
+        border-radius: 1em;
+        line-height: 1.7;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8em;
+    }
+    .log-error-icon {
+        font-size: 1.36em;
+        margin-right: 0.42em;
+        margin-top: 0.04em;
+        flex-shrink: 0;
+        color: #e32d3c;
+        text-shadow: 0 0.1em 9px #dda6bd40;
+    }
+</style>
+
+<!-- Monaco loader (from CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
+
+<div class="app-root-flex">
+    <aside class="sidebar-modern" id="app-sidebar">
+        <div class="sidebar-brand">
+            <span style="font-size:1.35em;">🤖</span>
+            Assistant Suite
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="sidebar-nav-link" data-section="chat">
+                <span class="sidebar-emoji">🧪</span>
+                Tests
+            </a>
+            <a href="#" class="sidebar-nav-link" data-section="history">
+                <span class="sidebar-emoji">⚙️</span>
+                Agent Configuration
+            </a>
+            <a href="#" class="sidebar-nav-link active" data-section="settings">
+                <span class="sidebar-emoji">💬</span>
+                Live Chat
+            </a>
+        </nav>
+    </aside>
+    <main class="chatbot-main-section">
+        <div class="action-bar">
+            <div class="action-bar-title">
+                <span class="chat-message-emoji">💬</span>
+                <span>AI Assistant</span>
+            </div>
+            <div class="action-bar-buttons">
+                <button class="action-bar-btn active" id="btn-chat" type="button">Chat</button>
+                <button class="action-bar-btn" id="btn-code" type="button">Code</button>
+                <button class="action-bar-btn" type="button" id="btn-logger">Logge</button>
+            </div>
+        </div>
+        <!-- Toggleable: Chat view, Code Editor, Logger view -->
+        <section class="chat-window" id="chat-window">
+            <div class="chat-message-row chat-message bot">
+                <div class="chat-message-bubble">
+                    <span class="chat-message-emoji">🤖</span>Hi! How can I help you today?
+                </div>
+            </div>
+        </section>
+        <section id="code-section">
+            <div id="monaco-editor-container"></div>
+        </section>
+        <section id="logger-section">
+            <!-- Collapsible info -->
+            <div class="log-block log-collapsed-info" id="log-collapsed-info-1">
+                <div class="log-collapsed-header" tabindex="0">
+                    <span class="log-arrow">&#9654;</span>
+                    Collapsible Information
+                </div>
+                <div class="log-collapsed-body">
+                    This section can be collapsed. It gives detailed information, for example helpful expanded logs or explanations.
+                    <br><br>
+                    When collapsed, only the title is visible.
+                    <br>
+                    <em>You can define your own logic/text here. This component fits a modern assistant UI.</em>
+                </div>
+            </div>
+            <!-- Info message -->
+            <div class="log-block log-info">
+                This is an informational message with a white background. Use this component to show neutral logs or information to the user.
+            </div>
+            <!-- Warning message -->
+            <div class="log-block log-warning">
+                <span class="log-warning-icon">⚠️</span>
+                <span>
+                    <strong>Warning:</strong> This action might have unintended consequences. Please double-check your configuration and proceed carefully.
+                </span>
+            </div>
+            <!-- Error message -->
+            <div class="log-block log-error">
+                <span class="log-error-icon">⛔</span>
+                <span>
+                    <strong>Error:</strong> Something went wrong and your request could not be processed.<br>
+                    Please try again or contact support if the problem persists.
+                </span>
+            </div>
+        </section>
+        <footer class="chatbot-footer" id="chatbot-footer">
+            <form id="chatbot-form" style="display: flex; flex:1; gap: 1em;">
+                <div class="chatbot-input-box">
+                    <input
+                        class="chatbot-input"
+                        id="chatbot-input"
+                        placeholder="Type your message and hit Enter..."
+                        autocomplete="off"
+                        required
+                    />
+                </div>
+                <button type="submit" class="chatbot-send-btn" id="chatbot-send-btn">
+                    Send
+                </button>
+            </form>
+        </footer>
+    </main>
+</div>
+
+<script>
+(function() {
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function(match) {
+            switch (match) {
+                case "&": return "&amp;";
+                case "<": return "&lt;";
+                case ">": return "&gt;";
+                case '"': return "&quot;";
+                case "'": return "&#039;";
+            }
+        });
+    }
+
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chatbot-form');
+    const chatInput = document.getElementById('chatbot-input');
+    const sendBtn = document.getElementById('chatbot-send-btn');
+    const chatFooter = document.getElementById('chatbot-footer');
+    const codeSection = document.getElementById('code-section');
+    const loggerSection = document.getElementById('logger-section');
+    let monacoEditor = null;
+    let monacoInitialized = false;
+    let monacoLoaderQueue = [];
+
+    function appendMessage(text, sender = "user") {
+        const row = document.createElement('div');
+        row.className = 'chat-message-row chat-message ' + sender;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-message-bubble';
+
+        let emoji = sender === "bot" ? '🤖' : '🧑';
+        bubble.innerHTML = `<span class="chat-message-emoji">${emoji}</span>${escapeHtml(text)}`;
+        row.appendChild(bubble);
+        chatWindow.appendChild(row);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function appendStream(){
+        const row = document.createElement('div');
+        row.className = 'chat-message-row chat-message ' + "bot";
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-message-bubble';
+
+        let emoji =  '🤖' 
+        bubble.innerHTML = `<span class="chat-message-emoji">${emoji}</span>`;
+        row.appendChild(bubble);
+        chatWindow.appendChild(row);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return bubble 
+    }
+
+    function simulateBotReply(userText) {
+        setTimeout(function() {
+            let reply;
+            const lc = userText.trim().toLowerCase();
+            if(!lc) reply = "I'm here!";
+            else if(lc.includes('hello') || lc.includes('hi')) reply = "Hello! What can I do for you?";
+            else if(lc.includes('weather')) reply = "I'm not connected to live data, but it looks like a great day to code!";
+            else if(lc.includes('name')) reply = "I'm your AI Assistant, here to help.";
+            else if(lc.match(/(\bwho are you\b|\bwhat are you\b)/)) reply = "I'm an AI chatbot created to assist you.";
+            else reply = "✨ Let me look into that for you... (This is a demo — replace me with your own model or API!)";
+            appendMessage(reply, "bot");
+        }, 550 + Math.random()*500);
+    }
+
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const value = chatInput.value.trim();
+        if (!value) return;
+        // Log the content of the message to the console as requested
+        console.log("User message:", value);
+        appendMessage(value, "user");
+        const response = await fetch(`/response?prompt=${encodeURIComponent(value)}`);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        bubble = appendStream()
+        let output = ""
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          if (chunk.includes("[DONE]")) break;
+
+          output += chunk;
+          bubble.innerHTML += chunk
+
+          console.log(output)
+        }
+
+        chatInput.value = "";
+        // simulateBotReply(value);
+    });
+
+    chatInput.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    // Sidebar navigation active state (matches style)
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            document.querySelectorAll('.sidebar-nav-link').forEach(x => x.classList.remove('active'));
+            link.classList.add('active');
+            e.preventDefault();
+            let titleNode = Array.from(link.childNodes).find(node =>
+                node.nodeType === 3 && node.textContent.trim()
+            );
+            let sectionTitle = titleNode ? titleNode.textContent.trim() : link.textContent.trim();
+            console.log("zebi zebi")
+            console.log(sectionTitle);
+            if (sectionTitle == "Tests") {
+                window.location.href = "/tests" ; 
+            } else if (sectionTitle == "Agent Configuration") {
+                window.location.href = "/agent_config"
+            }
+        })
+    });
+
+    // --- View switching logic (chat/code/logger) ---
+    const btnChat = document.getElementById('btn-chat');
+    const btnCode = document.getElementById('btn-code');
+    const btnLogger = document.getElementById('btn-logger');
+
+    function showChatView() {
+        chatWindow.style.display = '';
+        chatFooter.style.display = '';
+        codeSection.style.display = 'none';
+        loggerSection.style.display = 'none';
+    }
+    function showCodeView() {
+        chatWindow.style.display = 'none';
+        chatFooter.style.display = 'none';
+        codeSection.style.display = 'flex';
+        loggerSection.style.display = 'none';
+
+        // Monaco loader
+        if (!monacoInitialized) {
+            monacoInitialized = true;
+            window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs' } });
+            window.require(['vs/editor/editor.main'], function() {
+                monaco.editor.defineTheme('assistant-light', {
+                    base: 'vs',
+                    inherit: true,
+                    rules: [
+                        { token: 'comment', foreground: '90a4ae' },
+                        { token: 'keyword', foreground: '21528f', fontStyle: 'bold' },
+                        { token: 'string', foreground: '388e3c' },
+                        { token: 'number', foreground: '00838f' },
+                        { token: 'identifier', foreground: '234881' }
+                    ],
+                    colors: {
+                        "editor.background": "#f7f9fb",
+                        "editor.foreground": "#2c455f",
+                        "editor.lineHighlightBackground": "#e9effc",
+                        "editor.lineHighlightBorder": "#e9effc",
+                        "editorCursor.foreground": "#3DA8F5",
+                        "editorLineNumber.foreground": "#b3bdcf",
+                        "editorIndentGuide.background": "#eaeaea",
+                        "editorIndentGuide.activeBackground": "#bfdffa",
+                        "editor.selectionBackground": "#b8e5fa44",
+                        "editorWidget.background": "#f9fbff",
+                        "editorWidget.border": "#cbe6fa",
+                        "editorGutter.background": "#f7f9fb",
+                        "editorBracketMatch.background": "#dbefff",
+                        "editorBracketMatch.border": "#bde4fa",
+                    }
+                });
+                const initialCode = [
+                    '// Welcome to the Monaco Editor!',
+                    'function greet(name) {',
+                    '    return `Hello, ${name}!`;',
+                    '}',
+                    '',
+                    'console.log(greet("world"));'
+                ].join('\n');
+                monacoEditor = monaco.editor.create(
+                    document.getElementById('monaco-editor-container'), {
+                        value: initialCode,
+                        language: 'javascript',
+                        automaticLayout: true,
+                        theme: 'assistant-light',
+                        minimap: { enabled: false },
+                        fontSize: 15,
+                        fontFamily: "Fira Mono, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                        scrollbar: { verticalScrollbarSize: 7, horizontalScrollbarSize: 7 }
+                    }
+                );
+                monacoLoaderQueue.forEach(cb => cb());
+                monacoLoaderQueue = [];
+            });
+        } else if (monacoEditor) {
+            setTimeout(function() {
+                monacoEditor.layout();
+                monacoEditor.focus();
+            }, 100);
+        }
+    }
+
+    function showLoggerView() {
+        chatWindow.style.display = 'none';
+        codeSection.style.display = 'none';
+        chatFooter.style.display = 'none';
+        loggerSection.style.display = 'flex';
+    }
+
+    // Action bar button logic with view switch
+    document.querySelectorAll('.action-bar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.action-bar-btn').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            if (btn === btnChat) {
+                showChatView();
+            } else if (btn === btnCode) {
+                showCodeView();
+            } else if (btn === btnLogger) {
+                showLoggerView();
+            }
+        });
+    });
+
+    // Collapsible behavior for log-collapsed-info
+    function setupLoggerCollapsible() {
+        const collapsedInfo = document.getElementById('log-collapsed-info-1');
+        if (!collapsedInfo) return;
+        const header = collapsedInfo.querySelector('.log-collapsed-header');
+        collapsedInfo.classList.add('collapsed');
+        function toggle() {
+            if (collapsedInfo.classList.contains('collapsed')) {
+                collapsedInfo.classList.remove('collapsed');
+            } else {
+                collapsedInfo.classList.add('collapsed');
+            }
+        }
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.key === ' ') {
+                toggle();
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Make "Live Chat" sidebar link active on load
+    document.addEventListener('DOMContentLoaded', function() {
+        var links = document.querySelectorAll('.sidebar-nav-link');
+        links.forEach(x => x.classList.remove('active'));
+        var liveChat = document.querySelector('.sidebar-nav-link[data-section="settings"]');
+        if (liveChat) liveChat.classList.add('active');
+        setupLoggerCollapsible();
+    });
+
+    // If script loads after DOM ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(function() {
+            var links = document.querySelectorAll('.sidebar-nav-link');
+            links.forEach(x => x.classList.remove('active'));
+            var liveChat = document.querySelector('.sidebar-nav-link[data-section="settings"]');
+            if (liveChat) liveChat.classList.add('active');
+            setupLoggerCollapsible();
+        }, 0);
+    }
+
+    // Load Chat view by default
+    showChatView();
+
+})();
+</script>

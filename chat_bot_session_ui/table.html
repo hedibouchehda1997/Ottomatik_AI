@@ -1,0 +1,855 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .app-root-flex {
+        display: flex;
+        width: 100vw;
+        min-height: 100vh;
+        background: #f7f9fb;
+    }
+
+    .sidebar-modern {
+        flex: 0 0 220px;
+        max-width: 240px;
+        min-width: 180px;
+        background: linear-gradient(120deg, #e4edfb 60%, #f4f7fa 100%);
+        box-shadow: 2px 0 16px -7px #739ccd20;
+        border-right: 1.5px solid #e6eaf4;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 2.4rem 0 2rem 0;
+        z-index: 3;
+        transition: all 0.33s cubic-bezier(.46,0,.13,1);
+    }
+
+    .sidebar-brand {
+        color: #3667ad;
+        font-weight: bold;
+        font-size: 1.24em;
+        letter-spacing: 0.03em;
+        padding: 0 2.2rem 2.5rem 2.2rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+    }
+    .sidebar-nav {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 0.7rem 0 0.7rem;
+    }
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.88em;
+        font-size: 1.1em;
+        font-weight: 500;
+        background: transparent;
+        border: none;
+        color: #254874;
+        padding: 0.94em 1.1em 0.94em 1.3em;
+        border-radius: 0.66em;
+        cursor: pointer;
+        margin-bottom: 0.23em;
+        transition: background 0.14s, color 0.16s, box-shadow 0.12s;
+        text-align: left;
+        outline: none;
+        box-shadow: 0 1.5px 10px 0 #b8c9ed15;
+        position: relative;
+        text-decoration: none;
+    }
+    .sidebar-nav-link.active, .sidebar-nav-link:focus, .sidebar-nav-link:hover {
+        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 12px #c4def612;
+    }
+    .sidebar-nav-link .sidebar-emoji {
+        font-size: 1.16em;
+        margin-right: 0.3em;
+    }
+
+    /* Table & Cart Modern Layout */
+    .table-layout-flex {
+        display: flex;
+        width: 100%;
+        min-height: 100vh;
+        position: relative;
+        transition: all 0.5s cubic-bezier(.42,0,.13,1.2);
+    }
+    .show-table .interactive-table-container {
+        display: block;
+    }
+    .show-table .right-pane-detail {
+        display: none;
+    }
+    .show-table.detail-active .interactive-table-container,
+    .show-table.detail-active .right-pane-detail  {
+        display: block;
+    }
+    .show-table.detail-active {
+        /* On detail active, switch to row flex for desktop */
+        flex-direction: row;
+        transition: all 0.55s cubic-bezier(.42,0,.13,1.2);
+    }
+    .interactive-table-container {
+        flex: 1 1 0;
+        width: 100%;
+        transition: all 0.45s cubic-bezier(.6,0,.14,1.18);
+        padding: 2.2rem 2rem 2rem 1rem;
+        background: transparent;
+        box-sizing: border-box;
+        min-width: 0;
+        max-width: 100vw;
+        display: block;
+    }
+    .show-table.detail-active .interactive-table-container {
+        /* When cart is open: occupy 75% */
+        flex: 0 0 75%;
+        max-width: 75vw;
+    }
+    .right-pane-detail {
+        flex: 0 0 25%;
+        max-width: 450px;
+        min-width: 290px;
+        background: linear-gradient(125deg, #eef4fa 60%, #f7fcff 100%);
+        box-shadow: -6px 0 32px -10px #aeccf244, -1.5px 0 7px #b6d4fb11;
+        border-left: 1.7px solid #e2eaf8;
+        border-radius: 0 1.15em 1.15em 0;
+        margin-right: 0;
+        z-index: 12;
+        padding: 2.2rem 2.2rem 2.2rem 1.4rem;
+        display: none;
+        position: relative;
+        overflow-y: auto;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.38s cubic-bezier(.36,0,.13,1), box-shadow 0.40s;
+        will-change: opacity;
+    }
+    .show-table.detail-active .right-pane-detail.active {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+        animation: slideInCartPane 0.35s cubic-bezier(.42,0,.13,1.18);
+    }
+    @keyframes slideInCartPane {
+        from { opacity: 0; transform: translateX(40px);}
+        to { opacity: 1; transform: translateX(0);}
+    }
+    /* Cart Modern Design */
+    .right-pane-detail {
+        font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+        color: #235485;
+        background: linear-gradient(120deg, #eaf1fa 86%, #fafdff 100%);
+    }
+    .right-pane-detail .detail-title {
+        font-size: 1.14em;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #325ba0;
+        display: flex;
+        align-items: center;
+        gap: 0.4em;
+        margin-bottom: 1.3em;
+        padding-bottom: 0.66em;
+        border-bottom: 1px solid #e1eaf9;
+        background: none;
+        box-shadow: none;
+    }
+    .right-pane-detail .detail-section {
+        background: linear-gradient(91deg, #f9fcfe 96%, #f4f8ff 100%);
+        border-radius: 0.88em;
+        box-shadow: 0 2px 13px #bcd9fa13;
+        padding: 1.2em 1.09em 1.14em 1.09em;
+        margin-bottom: 1.24em;
+        font-size: 1em;
+        color: #264a87;
+        transition: box-shadow 0.24s;
+        border: 1.2px solid #e6ecf4;
+    }
+    .right-pane-detail .detail-section strong {
+        color: #385e92;
+        font-weight: 700;
+        font-size: 1.05em;
+        letter-spacing: 0.01em;
+    }
+    .edit-textarea {
+        width: 100%;
+        border-radius: 0.48em;
+        background: #f9fbff;
+        border: 1.1px solid #cfe2f5;
+        color: #254874;
+        font-size: 1.04em;
+        font-family: inherit;
+        font-weight: 500;
+        padding: 0.7em 1em;
+        margin-top: 0.8em;
+        margin-bottom: 0.16em;
+        resize: vertical;
+        box-shadow: 0 2px 7px #b3dcff13;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.16s;
+        min-height: 2.7em;
+        max-height: 18em;
+        overflow-y: auto;
+    }
+    .edit-textarea:focus {
+        border-color: #64a3ea;
+        box-shadow: 0 2px 13px #bde1fa38;
+        background: #f4fafd;
+    }
+    .edit-save-btn {
+        padding: 0.48em 1.26em;
+        border-radius: 1.2em;
+        background: linear-gradient(90deg,#51aefa 65%,#7ceee0 100%);
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.05em;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 10px #7ab1e020;
+        transition: background 0.18s, opacity 0.18s;
+        opacity: 0.96;
+    }
+    .edit-save-btn:active {
+        opacity: 0.8;
+        background: linear-gradient(90deg,#398ebf 70%,#ace0e8 100%);
+    }
+    .detail-close-btn {
+        background: none;
+        border: none;
+        color: #9baeca;
+        font-size: 1.7em;
+        font-weight: 400;
+        cursor: pointer;
+        margin-left: auto;
+        margin-right: -0.42em;
+        line-height: 1;
+        padding: 0 0.1em;
+        transition: color 0.16s;
+    }
+    .detail-close-btn:hover {
+        color: #5f89bd;
+    }
+    /* Responsive for table/cart view */
+    @media (max-width: 1150px) {
+        .show-table.detail-active .interactive-table-container {
+            max-width: 68vw;
+            flex-basis: 66%;
+        }
+        .right-pane-detail {
+            max-width: 380px;
+            min-width: 180px;
+            padding: 1.7rem 1.1rem 1.7rem 0.9rem;
+        }
+    }
+    @media (max-width: 900px) {
+        .table-layout-flex {
+            flex-direction: column !important;
+        }
+        .show-table.detail-active .interactive-table-container,
+        .show-table.detail-active .right-pane-detail {
+            max-width: 100vw;
+            flex: unset;
+        }
+        .show-table.detail-active .right-pane-detail.active {
+            /* On mobile, make the cart overlay from the right, not beside */
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: auto;
+            bottom: 0;
+            min-width: min(98vw, 425px);
+            max-width: min(98vw, 425px);
+            box-shadow: -14px 0 50px 2px #a2bcee44;
+            border-radius: 0 0 0 0;
+            z-index: 120;
+            padding: 2.4rem 1.19em 1.18rem 1.25em;
+            animation: slideInCartPaneMobile 0.34s cubic-bezier(.52,0,.18,1.1);
+        }
+        @keyframes slideInCartPaneMobile {
+            from { opacity: 0; transform: translateX(80px);}
+            to { opacity: 1; transform: translateX(0);}
+        }
+    }
+    @media (max-width: 600px) {
+        .right-pane-detail {
+            padding: 1.1rem 0.7em 0.7rem 0.7em;
+            min-width: 0;
+            max-width: 100vw;
+                border-radius: 0;
+        }
+        .edit-textarea {
+            padding: 0.54em 0.5em;
+            font-size: 0.99em;
+        }
+    }
+
+    /* The rest of your original style remains unchanged below... */
+    .interactive-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+        border-radius: 1.1em;
+        box-shadow: 0 6px 32px -14px #abc7f05a, 0 1.5px 7px #b6d4fb1b;
+        overflow: hidden;
+        font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+        font-size: 1.06em;
+        margin: 0;
+        table-layout: fixed;
+        user-select: none;
+    }
+    .interactive-table col {}
+    .interactive-table thead tr {
+        background: linear-gradient(90deg,#e7effc 60%, #f4f7fa 100%);
+    }
+    .interactive-table th {
+        color: #28559c;
+        font-weight: 700;
+        padding: 1.07em 1.08em;
+        text-align: left;
+        border-bottom: 2px solid #e5ecfa;
+        font-size: 1.045em;
+        letter-spacing: 0.01em;
+        user-select: none;
+    }
+    .interactive-table td {
+        color: #213a57;
+        font-weight: 500;
+        padding: 1.04em 1.08em;
+        background: transparent;
+        border-bottom: 1.3px solid #e9f2fc;
+        word-break: break-word;
+        vertical-align: top;
+        font-size: 1em;
+        transition: background 0.14s;
+        cursor: pointer;
+    }
+    .interactive-table tr:last-child td {
+        border-bottom: none;
+    }
+    .interactive-table td.selected-cell {
+        background: linear-gradient(90deg,#e6f4fd 79%,#dcf1ff 100%) !important;
+        box-shadow: 0 0 0 2px #44befa30 inset;
+        position: relative;
+        z-index: 1;
+        transition: background 0.15s;
+    }
+    .interactive-table td:hover:not(.selected-cell) {
+        background: linear-gradient(90deg,#f0f6ff 60%,#f7fbff 100%);
+    }
+    .interactive-table td.user-query-cell {
+        font-weight: 600;
+        color: #315593;
+        font-size: 1.05em;
+        letter-spacing: .004em;
+    }
+    .interactive-table .rel-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 1em;
+        padding: 0.22em 0.9em 0.20em 0.7em;
+        font-weight: 600;
+        font-size: 0.98em;
+        letter-spacing: 0.01em;
+        margin-left: 0.15em;
+        margin-right: 0.16em;
+        margin-top: -0.10em;
+        user-select: none;
+        box-shadow: 0 2px 8px #cce6ff17;
+    }
+    .rel-badge.relevant {
+        background: linear-gradient(90deg,#4dcc99 70%,#a6f7c7 100%);
+        color: #146444;
+        border: 1.3px solid #b7eadd;
+    }
+    .rel-badge.quite {
+        background: linear-gradient(90deg,#a0d4ee 70%,#c1eefc 100%);
+        color: #17658d;
+        border: 1.3px solid #b7deff;
+    }
+    .rel-badge.less {
+        background: linear-gradient(90deg,#ffe780 70%,#f6f3b0 100%);
+        color: #88770f;
+        border: 1.3px solid #efe6bd;
+    }
+    .rel-badge.bad {
+        background: linear-gradient(90deg,#ffb6ad 70%,#ffe1e0 100%);
+        color: #bc2929;
+        border: 1.3px solid #f7cfd9;
+    }
+    .rel-badge .check-emoji {
+        margin-right: 0.48em;
+        font-size: 1.13em;
+        filter: drop-shadow(0 0.14em 2px #d0edff66);
+    }
+    /* ...end of rest... */
+    .agent-config-container {
+        display: none;
+    }
+    .show-config .agent-config-container {
+        display: flex;
+    }
+</style>
+<div class="app-root-flex">
+  <nav class="sidebar-modern" id="app-sidebar">
+    <div class="sidebar-brand">
+      <span style="font-size:1.45em;filter:drop-shadow(0 2px 8px #94bdf854);">🤖</span>
+      <span>Assistant Suite</span>
+    </div>
+    <div class="sidebar-nav">
+      <a href="#" class="sidebar-nav-link active" data-section="tests">
+        <span class="sidebar-emoji">🧪</span>
+        Tests
+      </a>
+      <a href="#" class="sidebar-nav-link" data-section="agent">
+        <span class="sidebar-emoji">⚙️</span>
+        Agent Configuration
+      </a>
+      <a href="#" class="sidebar-nav-link" data-section="chat">
+        <span class="sidebar-emoji">💬</span>
+        Live Chat
+      </a>
+    </div>
+  </nav>
+  <div class="table-layout-flex show-table" id="table-layout-flex" style="flex: 1 1 0; min-width: 0;">
+    <!-- Modern Agent Config form (hidden by default) -->
+    <div class="agent-config-container" id="agent-config-container">
+      <!-- Agent configuration form removed -->
+    </div>
+    <!-- Modern Table Display (visible by default) -->
+    <div class="interactive-table-container" id="interactive-table-container">
+      <table class="interactive-table" cellspacing="0" id="main-table">
+          <thead>
+              <!-- Will be filled by JS -->
+          </thead>
+          <tbody>
+              <!-- Will be filled by JS -->
+          </tbody>
+      </table>
+    </div>
+    <div class="right-pane-detail" id="right-pane-detail"></div>
+  </div>
+</div>
+<script>
+(function(){
+    // Data for Tests table
+    const ROWS = [
+        {
+            "User Query": "What is the capital of France?",
+            "Ground Truth": "Paris",
+            "Generated Output": "Paris",
+            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+        },
+        {
+            "User Query": "Summarize the theory of evolution.",
+            "Ground Truth": "Evolution describes the process by which species change over time through natural selection.",
+            "Generated Output": "Species adapt and change gradually over generations due to natural selection.",
+            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+        },
+        {
+            "User Query": "Translate \"Hello\" to Spanish.",
+            "Ground Truth": "Hola",
+            "Generated Output": "Hola",
+            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+        },
+        {
+            "User Query": "Who wrote '1984'?",
+            "Ground Truth": "George Orwell",
+            "Generated Output": "George Orwell",
+            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+        },
+        {
+            "User Query": "Explain Python list comprehensions.",
+            "Ground Truth": "List comprehensions provide a concise way to create lists using a single line of code.",
+            "Generated Output": "A Python list comprehension is a compact way to create lists from iterables.",
+            "Relevance": {label: "Quite Relevant", badge: "quite", emoji: "✅"}
+        },
+        {
+            "User Query": "What is the boiling point of water?",
+            "Ground Truth": "100°C at standard atmospheric pressure.",
+            "Generated Output": "100 degrees Celsius.",
+            "Relevance": {label: "Quite Relevant", badge: "quite", emoji: "✔️"}
+        },
+        {
+            "User Query": "Name a city in Germany.",
+            "Ground Truth": "Berlin",
+            "Generated Output": "Munich",
+            "Relevance": {label: "Less Relevant", badge: "less", emoji: "🟡"}
+        },
+        {
+            "User Query": "What is photosynthesis?",
+            "Ground Truth": "It is the process by which green plants convert sunlight, water, and CO2 into glucose and oxygen.",
+            "Generated Output": "Plants need sunlight to live.",
+            "Relevance": {label: "Less Relevant", badge: "less", emoji: "🟡"}
+        },
+        {
+            "User Query": "What is 2 + 2?",
+            "Ground Truth": "4",
+            "Generated Output": "5",
+            "Relevance": {label: "Bad Relevance", badge: "bad", emoji: "❌"}
+        },
+        {
+            "User Query": "Define gravity.",
+            "Ground Truth": "A natural force causing objects to be attracted toward the center of the Earth or other physical bodies.",
+            "Generated Output": "It is related to levitation.",
+            "Relevance": {label: "Bad Relevance", badge: "bad", emoji: "❌"}
+        }
+    ];
+
+    // Tests Table Columns
+    const COLUMNS = [
+        { key: "User Query", label: "User Query", className: "user-query-cell", widthWeight: 1 },
+        { key: "Ground Truth", label: "Ground Truth", widthWeight: 2 },
+        { key: "Generated Output", label: "Generated Output", widthWeight: 1 },
+        { key: "Relevance", label: "Relevance", widthWeight: 1 }
+    ];
+
+    function setColumnWidths(table, columns) {
+        const totalWeight = columns.reduce((s, col) => s + (col.widthWeight || 1), 0);
+        let colgroup = table.querySelector('colgroup');
+        if (colgroup) colgroup.remove();
+        colgroup = document.createElement('colgroup');
+        columns.forEach((col, idx) => {
+            const colEl = document.createElement('col');
+            colEl.className = 'col-' + (idx+1);
+            const perc = ((col.widthWeight||1) / totalWeight * 100).toFixed(3);
+            colEl.style.width = perc+'%';
+            colgroup.appendChild(colEl);
+        });
+        table.insertBefore(colgroup, table.firstChild);
+    }
+
+    function renderTable(table, columns, dataRows) {
+        setColumnWidths(table, columns);
+
+        // Header
+        const thead = table.querySelector('thead');
+        thead.innerHTML = '';
+        const trHead = document.createElement('tr');
+        columns.forEach((col, idx) => {
+            const th = document.createElement('th');
+            th.textContent = col.label;
+            th.classList.add('col-' + (idx+1));
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+
+        // Body
+        const tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+        dataRows.forEach(row => {
+            const tr = document.createElement('tr');
+            columns.forEach((col, idx) => {
+                const td = document.createElement('td');
+                td.classList.add('col-' + (idx+1));
+                if (col.key === "User Query") {
+                    td.classList.add('user-query-cell');
+                }
+                if (col.key !== "Relevance") {
+                    td.textContent = row[col.key];
+                } else {
+                    // Badge
+                    const span = document.createElement('span');
+                    span.className = `rel-badge ${row.Relevance.badge}`;
+                    const checkEmoji = document.createElement('span');
+                    checkEmoji.className = 'check-emoji';
+                    checkEmoji.textContent = row.Relevance.emoji;
+                    span.appendChild(checkEmoji);
+                    span.appendChild(document.createTextNode(' ' + row.Relevance.label));
+                    td.appendChild(span);
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Initial State: Tests selected, show table
+    const table = document.getElementById('main-table');
+    const layout = document.getElementById('table-layout-flex');
+    const rightPane = document.getElementById('right-pane-detail');
+    const tableContainer = document.getElementById('interactive-table-container');
+    let tbody = table.getElementsByTagName('tbody')[0];
+    renderTable(table, COLUMNS, ROWS);
+
+    let rows = Array.from(tbody.children);
+
+    let selectedCellInfo = {row: null, col: null};
+
+    function clearCellSelection() {
+        const cells = table.querySelectorAll('td.selected-cell');
+        Array.from(cells).forEach(td => td.classList.remove('selected-cell'));
+        selectedCellInfo.row = null;
+        selectedCellInfo.col = null;
+    }
+    function selectCell(trIdx, tdIdx) {
+        clearCellSelection();
+        rows = Array.from(tbody.children);
+        if (
+          typeof trIdx === "number"
+          && typeof tdIdx === "number"
+          && rows[trIdx]
+          && rows[trIdx].children[tdIdx]
+        ) {
+          rows[trIdx].children[tdIdx].classList.add('selected-cell');
+          selectedCellInfo.row = trIdx;
+          selectedCellInfo.col = tdIdx;
+        }
+    }
+
+    function reAttachCellEvents() {
+        rows = Array.from(tbody.children);
+        rows.forEach((tr, trIdx) => {
+            tr.querySelectorAll('td').forEach((td, tdIdx) => {
+                td.onclick = function(e){
+                    selectCell(trIdx, tdIdx);
+                    showCellDetail(trIdx, tdIdx);
+                    e.stopPropagation();
+                }
+            });
+        });
+    }
+
+    // Helper: Escape HTML for right pane
+    function esc(txt) {
+        if (typeof txt !== "string") return txt;
+        return txt.replace(/[<>&"'`]/g, function(c) {
+            return ({
+                "<":"&lt;",
+                ">":"&gt;",
+                "&":"&amp;",
+                "\"":"&quot;",
+                "'":"&#39;",
+                "`":"&#96;"
+            })[c];
+        });
+    }
+
+    // Show row detail (modern cart on right - show all cells for one row)
+    function showCellDetail(trIdx, tdIdx) {
+        if (
+            typeof trIdx !== "number"
+            || !ROWS[trIdx]
+        ) return;
+        const row = ROWS[trIdx];
+
+        // Mark cell as selected as before
+        clearCellSelection();
+        if (
+            typeof trIdx === "number"
+            && typeof tdIdx === "number"
+            && rows[trIdx]
+            && rows[trIdx].children[tdIdx]
+        ) {
+            rows[trIdx].children[tdIdx].classList.add('selected-cell');
+            selectedCellInfo.row = trIdx;
+            selectedCellInfo.col = tdIdx;
+        }
+
+        // Modern right cart: Show all cells for the row, with editing available on User Query and Ground Truth
+        let sections = '';
+        COLUMNS.forEach((col, idx) => {
+            let isEditable = (col.key === "User Query" || col.key === "Ground Truth");
+            let label = esc(col.label || col.key);
+            let displayValue = '';
+            if (col.key === "Relevance") {
+                displayValue = `<span class="rel-badge ${row.Relevance.badge}">
+                        <span class="check-emoji">${row.Relevance.emoji}</span> ${row.Relevance.label}
+                    </span>`;
+            } else {
+                displayValue = esc(row[col.key]);
+            }
+
+            sections += `
+                <div class="detail-section" data-section-idx="${idx}" style="margin-bottom:1.25em;">
+                    <strong>${label}:</strong>
+                    ${
+                        isEditable
+                        ? `<textarea class="edit-textarea" id="edit-cell-input-${col.key.replace(/\s+/g, '')}" name="cellInput_${col.key.replace(/\s+/g, '')}" autocomplete="off" placeholder="Edit ${label}..." rows="4">${displayValue}</textarea>`
+                        : `<div style="margin-top:0.7em;">${displayValue}</div>`
+                    }
+                </div>
+            `;
+        });
+
+        // Save button for the entire row, editing User Query and/or Ground Truth
+        rightPane.innerHTML = `
+            <div class="detail-title">
+                <span style="margin-right:0.4em; font-size:1.15em;">🔍</span>
+                Row Details
+                <button type="button" class="detail-close-btn" id="detail-close-btn" title="Close">&times;</button>
+            </div>
+            <form id="detail-edit-form">
+                ${sections}
+                <div class="detail-section" style="background:none;box-shadow:none;text-align:right;margin-bottom:0;border:none;padding:0 0 0.2em 0;">
+                    <button type="submit" class="edit-save-btn">Save Changes</button>
+                </div>
+            </form>
+        `;
+
+        // Add close btn
+        const closeBtn = document.getElementById('detail-close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = function(ev) {
+                ev.preventDefault();
+                clearCellSelection();
+                hideRightPaneDetail();
+            };
+        }
+
+        // Auto-resize and form submission for multiple editable fields
+        const form = document.getElementById('detail-edit-form');
+        if (form) {
+            COLUMNS.forEach((col) => {
+                if (col.key === "User Query" || col.key === "Ground Truth") {
+                    const textarea = form.querySelector(`#edit-cell-input-${col.key.replace(/\s+/g, '')}`);
+                    if (textarea) {
+                        textarea.oninput = null;
+                        textarea.style.overflowY = 'auto';
+                        textarea.style.height = 'auto';
+                        const autoResize = function() {
+                            textarea.style.height = 'auto';
+                            const minHeight = parseInt(window.getComputedStyle(textarea).minHeight || 0) || 0;
+                            textarea.style.height = Math.max(textarea.scrollHeight + 2, minHeight) + 'px';
+                        };
+                        textarea.addEventListener('input', autoResize);
+                        setTimeout(autoResize, 15);
+                    }
+                }
+            });
+            form.onsubmit = function(ev){
+                ev.preventDefault();
+                let updated = false;
+                COLUMNS.forEach((col, idx) => {
+                    if (col.key === "User Query" || col.key === "Ground Truth") {
+                        const textarea = form.querySelector(`#edit-cell-input-${col.key.replace(/\s+/g, '')}`);
+                        if (textarea && row[col.key] !== textarea.value) {
+                            row[col.key] = textarea.value;
+                            updated = true;
+                        }
+                    }
+                });
+                if (updated) {
+                    renderTable(table, COLUMNS, ROWS);
+                    rows = Array.from(tbody.children);
+                    reAttachCellEvents();
+                    // Select first editable cell in row after update for focus
+                    let editableColIdx = COLUMNS.findIndex(c => c.key === "User Query");
+                    selectCell(trIdx, editableColIdx >= 0 ? editableColIdx : 0);
+                }
+                // Refresh right pane regardless to update content
+                showCellDetail(trIdx, tdIdx);
+            };
+        }
+
+        // Cart effect: move table and show right pane with smooth transition
+        layout.classList.add('detail-active');
+        setTimeout(() => rightPane.classList.add('active'), 20);
+    }
+
+    function hideRightPaneDetail() {
+        rightPane.classList.remove('active');
+        layout.classList.remove('detail-active');
+        setTimeout(() => {}, 370);
+    }
+
+    // Attach cell click events on first load
+    function attachCellEventsOnce() {
+        rows.forEach((tr, trIdx) => {
+            tr.querySelectorAll('td').forEach((td, tdIdx) => {
+                td.onclick = function(e){
+                    // --- Begin fix ---
+                    // Always re-add show-table and remove show-config for table visibility/interaction
+                    layout.classList.remove('show-config');
+                    if (!layout.classList.contains('show-table')) {
+                        layout.classList.add('show-table');
+                    }
+                    // --- End fix ---
+                    selectCell(trIdx, tdIdx);
+                    showCellDetail(trIdx, tdIdx);
+                    e.stopPropagation();
+                }
+            });
+        });
+    }
+    attachCellEventsOnce();
+
+    // Hide detail when clicking outside
+    rightPane.addEventListener('click', function(e){
+        e.stopPropagation();
+    });
+    document.body.addEventListener('mousedown', function(evt){
+        const isInSidebar = document.getElementById('app-sidebar').contains(evt.target);
+        const isInTable = tableContainer.contains(evt.target);
+        const isInPane = rightPane.contains(evt.target);
+        if (!isInSidebar && !isInTable && !isInPane && rightPane.classList.contains('active')) {
+            clearCellSelection();
+            hideRightPaneDetail();
+        }
+    });
+
+    // --- Sidebar navigation for view switch ---
+    const navLinks = document.querySelectorAll('.sidebar-nav-link');
+
+    // Function to log section name when clicking a sidebar link
+    function logSidebarSectionName(node) {
+        // Try to get the section name as visible in the link text
+        // Use first text node after emoji, or fallback to .textContent trim
+        let text = "";
+        // Exclude emoji span - get all non-empty text from the node
+        node.childNodes.forEach(child => {
+            if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
+                text += child.textContent.trim();
+            }
+        });
+        if (!text) {
+            text = node.textContent.trim();
+        }
+        console.log(text);
+        if (text == "Live Chat") {
+            window.location.href = "/chat"
+            
+        } else if (text == "Agent Configuration") {
+                window.location.href = "/agent_config"
+        }
+        
+    }
+
+    function updateSection(targetSection) {
+        layout.classList.remove('show-table', 'show-config', 'detail-active');
+        rightPane.classList.remove('active');
+        if(targetSection === 'tests') {
+            layout.classList.add('show-table');
+        } else if(targetSection === 'agent') {
+            layout.classList.add('show-config');
+        } else {
+            layout.classList.add('show-table');
+        }
+    }
+    updateSection('tests');
+
+    navLinks.forEach((node) => {
+      node.addEventListener('click', (e) => {
+        navLinks.forEach(x => x.classList.remove('active'));
+        node.classList.add('active');
+        e.preventDefault();
+        const sec = node.getAttribute('data-section');
+        updateSection(sec);
+        // Console log the section name
+        logSidebarSectionName(node);
+      });
+    });
+
+    // Agent config form (dummy submit)
+    // (Form removed, so this handler is now unnecessary)
+
+})();
+</script>

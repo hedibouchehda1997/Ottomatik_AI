@@ -1,0 +1,121 @@
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        height: 100vh;
+        min-height: 100vh;
+    }
+    .sidebar-modern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        max-width: 240px;
+        min-width: 180px;
+        background: linear-gradient(120deg, #e4edfb 60%, #f4f7fa 100%);
+        box-shadow: 2px 0 16px -7px #739ccd20;
+        border-right: 1.5px solid #e6eaf4;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 2.4rem 0 2rem 0;
+        z-index: 3;
+        transition: all 0.33s cubic-bezier(.46,0,.13,1);
+    }
+    .sidebar-brand {
+        color: #3667ad;
+        font-weight: bold;
+        font-size: 1.24em;
+        letter-spacing: 0.03em;
+        padding: 0 2.2rem 2.5rem 2.2rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+    }
+    .sidebar-nav {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 0.7rem 0 0.7rem;
+    }
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.88em;
+        font-size: 1.1em;
+        font-weight: 500;
+        background: transparent;
+        border: none;
+        color: #254874;
+        padding: 0.94em 1.1em 0.94em 1.3em;
+        border-radius: 0.66em;
+        cursor: pointer;
+        margin-bottom: 0.23em;
+        transition: background 0.14s, color 0.16s, box-shadow 0.12s;
+        text-align: left;
+        outline: none;
+        box-shadow: 0 1.5px 10px 0 #b8c9ed15;
+        position: relative;
+        text-decoration: none;
+    }
+    .sidebar-nav-link.active, .sidebar-nav-link:focus, .sidebar-nav-link:hover {
+        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 12px #c4def612;
+    }
+    .sidebar-nav-link .sidebar-emoji {
+        font-size: 1.16em;
+        margin-right: 0.3em;
+    }
+</style>
+<nav class="sidebar-modern" id="app-sidebar">
+    <div class="sidebar-brand">
+        <span style="font-size:1.45em;filter:drop-shadow(0 2px 8px #94bdf854);">🤖</span>
+        <span>Assistant Suite</span>
+    </div>
+    <div class="sidebar-nav">
+        <a href="#" class="sidebar-nav-link" data-section="tests">
+            <span class="sidebar-emoji">🧪</span>
+            Tests
+        </a>
+        <a href="#" class="sidebar-nav-link active" data-section="agent">
+            <span class="sidebar-emoji">⚙️</span>
+            Agent Configuration
+        </a>
+        <a href="#" class="sidebar-nav-link" data-section="chat">
+            <span class="sidebar-emoji">💬</span>
+            Live Chat
+        </a>
+    </div>
+</nav>
+<script>
+    // Function to log section name (excluding emoji), called on sidebar link click
+    function logSidebarSectionName(node) {
+        let text = "";
+        node.childNodes.forEach(child => {
+            if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
+                text += child.textContent.trim();
+            }
+        });
+        if (!text) {
+            text = node.textContent.trim();
+        }
+        console.log(text);
+    }
+    // Attach event listeners to sidebar section links to log the section name on click
+    document.addEventListener("DOMContentLoaded", function() {
+        var sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
+        sidebarLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                logSidebarSectionName(this);
+            });
+        });
+    });
+</script>
