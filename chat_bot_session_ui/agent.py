@@ -1,7 +1,4 @@
-from langchain.agents import Tool, initialize_agent
-from langchain.agents.agent_types import AgentType
-from langchain.chat_models import ChatOpenAI
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from openai import OpenAI
 import os
 from contextlib import contextmanager
 from dotenv import load_dotenv, find_dotenv
@@ -20,32 +17,16 @@ with load_env(["OPENAI_API_KEY"]) :
 
     key = os.environ.get("OPENAI_API_KEY")
 
-    tavily_tool = Tool(
-        name="TavilySearch",
-        func=tavily_search,
-        description="Searches the web using Tavily and returns relevant results."
+    client = OpenAI(api_key=key)
+
+    stream = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": "how to make a fuel without co2 write me 4 paragraph esssay about it !"}],
+        stream=True
     )
 
-    # --- 2. Setup the chat model with streaming ---
-    chat_model = ChatOpenAI(
-        model_name="gpt-4",
-        openai_api_key=key,
-        streaming=True,
-        callbacks=[StreamingStdOutCallbackHandler()]
-    )
+    for chunk in stream:
+        if chunk.choices[0].delta.content:
+            print(chunk.choices[0].delta.content, end="", flush=True)
 
-    # --- 3. Initialize the agent ---
-    agent = initialize_agent(
-        tools=[tavily_tool],
-        llm=chat_model,
-        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        verbose=True
-    )
 
-    # --- 4. Run the agent ---
-    query = "Latest news on AI advancements"
-    print("testtst   \n\n **************")
-    for output in agent.stream(query) : 
-        print("s\n")
-        print(output,end="")
-    # agent.run(query)

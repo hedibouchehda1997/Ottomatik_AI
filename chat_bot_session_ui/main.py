@@ -27,14 +27,12 @@ with load_env(["OPENAI_API_KEY"]) :
         api_key = key
     )
 
-
-
-
 @app.get("/chat",response_class=HTMLResponse) 
 def get_table_page() : 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    html_path = os.path.join(base_dir, "chatbot.html")
-
+    # Move up one directory to root, then into 'templates'
+    root_dir = os.path.dirname(base_dir)
+    html_path = os.path.join(root_dir, "templates", "chatbot.html")
     if os.path.exists(html_path):
         with open(html_path, "r", encoding="utf-8") as f:
             return f.read()
@@ -42,8 +40,8 @@ def get_table_page() :
 @app.get("/tests",response_class=HTMLResponse)
 def get_chat_page() : 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    html_path = os.path.join(base_dir, "table.html")
-
+    root_dir = os.path.dirname(base_dir)
+    html_path = os.path.join(root_dir, "templates", "table.html")
     if os.path.exists(html_path):
         with open(html_path, "r", encoding="utf-8") as f:
             return f.read()
@@ -51,11 +49,12 @@ def get_chat_page() :
 @app.get("/agent_config",response_class=HTMLResponse)
 def get_config_page() : 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    html_path = os.path.join(base_dir, "agent_config.html")
-
+    root_dir = os.path.dirname(base_dir)
+    html_path = os.path.join(root_dir, "templates", "agent_config.html")
     if os.path.exists(html_path):
         with open(html_path, "r", encoding="utf-8") as f:
             return f.read()
+
 @app.get("/response") 
 async def llm_response(prompt:str) : 
     print("user query",prompt)
