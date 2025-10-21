@@ -22,31 +22,12 @@ class Data :
         self.columns = columns 
         self.data = data
 
-class DataLoader : 
-    def __init__(self,data:Data,metrics:List[str]) : 
-        self.columns = []
-        self.data = data.data
-        self.num_cols = 0
-        for i in range(len(data.columns)) : 
-            self.num_cols += 1
-            self.columns.append(("col"+str(self.num_cols),data.columns[i]))
-
-        for metric in metrics : 
-            if metric == "output" : 
-                self.num_cols += 1 
-                self.columns.append(("col"+str(self.num_cols),"Output")) 
-            elif metric == "relevance" : 
-                self.num_cols += 1 
-                self.columns.append(("col"+str(self.num_cols),"Relevance"))
-    
-        for row in self.data : 
-            for i in range(len(self.columns)) : 
-                if i >= len(list(row.keys())) : 
-                    row["col"+str(i+1)] = "" 
 
 class CSVHandler : 
     def __init__(self,file_name : str) : 
-        self.file_name = file_name 
+        self.file_name = file_name
+
+
     def set_data_and_cols(self,cols:List[Dict[str,str]],data:List[Dict]) : 
         self.data = data 
         self.cols = cols  
@@ -90,7 +71,55 @@ class CSVHandler :
         data_rows = reader[3:]
         data = [dict(zip(keys, row)) for row in data_rows]
 
-        return self.cols, self.data
+        return cols, data
+
+class DataLoader : 
+    def __init__(self,csv_handler:CSVHandler,metrics:List[Dict]) : 
+        self.csv_handler = csv_handler 
+        self.cols, self.data = self.csv_handler.load_table_from_csv()
+        self.metrics_cols = []
+        self.metrics_row_values = []
+        start_col_num_metrics = len(self.cols)
+        for metric in metrics : 
+            self.metrics_cols.append({
+                    "key":"col"+str(start_col_num_metrics),
+                    "label":metric["label"],
+                    "widthWeight":metric["widthWeight"]
+                    })
+            start_col_num_metrics += 1 
+
+        for data in self.data : 
+            metrics_row_value = {}
+            for metric in self.metrics_cols : 
+                metrics_row_value[metric["key"]] = "" 
+            self.metrics_row_values.append(metrics_row_value)
+            
+    def build_full_table(self) : 
+        cols_res = []
+        final_rows = []
+        for col in self.cols : 
+            cols_res.append(col) 
+        
+        for col in self.metrics_cols : 
+            cols_res.append(col)
+
+        for d1, d2 in zip(self.data, self.metrics_row_values):
+            final_rows.append({**d1, **d2})  
+
+        return cols_res, final_rows
+
+
+    
+
+
+
+def create_csv_in_tests(filename):
+
+    tests_dir = os.path.join(os.getcwd(), "tests")
+    os.makedirs(tests_dir, exist_ok=True)
+    file_path = os.path.join(tests_dir, filename)
+    return file_path
+
 
 if __name__ == "__main__" : 
     cols =  [{"key":"col1","label":"User query","widthWeight":1},{"key":"col2","label":"Ground truth","widthWeight":1}] 

@@ -1,20 +1,7 @@
 [
     {
-        "user_id": "d3ce86ed86474f1f934ce78f3986efbb",
-        "agent_id": "92a3875011b246f697efafb3f733eaf9",
-        "version": 0,
-        "agent_details": {
-            "agent_type": "React",
-            "model": "gpt-4",
-            "system_prompt": "You are a helpful assitant ",
-            "tools": [
-                "tavily_search"
-            ]
-        }
-    },
-    {
-        "user_id": "1ef4fadb31ca4cc5b2619b5561ec13aa",
-        "agent_id": "b540e8d32a654ff9a38be598b2a74858",
+        "user_id": "4f7c0aa1562345ac8f3722b1f9a8742c",
+        "agent_id": "cc37e314d2aa4129a2f7be8745820e3b",
         "version": 0,
         "agent_details": {
             "agent_type": "Tool calling",
@@ -26,8 +13,8 @@
         }
     },
     {
-        "user_id": "0cdad08b2d634d7c846ad13634f70f33",
-        "agent_id": "2531fe3d34884dcd90f990aa59613bfc",
+        "user_id": "e51f93883d3f47b38c3722b9a1cb9f7a",
+        "agent_id": "a3f3491cb3434c71ab13c08b88689a6e",
         "version": 0,
         "agent_details": {
             "agent_type": "Tool calling",
@@ -39,8 +26,8 @@
         }
     },
     {
-        "user_id": "cc9fbd0a193843d9ba21e40029ac9b75",
-        "agent_id": "006b2f8aadb04698af85d787bf793b13",
+        "user_id": "5d535c9d015049aca59681ec67748246",
+        "agent_id": "9d17a7ca8b364446bdbc581f19e8c4c2",
         "version": 0,
         "agent_details": {
             "agent_type": "Tool calling",
@@ -52,8 +39,8 @@
         }
     },
     {
-        "user_id": "77aa7a251eab4338a011b5659631c79b",
-        "agent_id": "411925e73e224c0b975974bf2ea3b6e3",
+        "user_id": "bfd6a8d7c8e3401689e29ccf4772dd96",
+        "agent_id": "3851fbc598cf44449b6c817ce19f2f33",
         "version": 0,
         "agent_details": {
             "agent_type": "Tool calling",
@@ -63,5 +50,7 @@
                 "tavily_search"
             ]
         }
-    }
+    } 
+
+    
 ]
