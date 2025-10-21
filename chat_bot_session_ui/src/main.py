@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.responses import HTMLResponse
 from models import GPTCall, StreamHandler
-from context_manager import load_env
+from chat_bot_session_ui.src.utils import load_env
 from langchain.schema import HumanMessage
 import asyncio
 import os 

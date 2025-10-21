@@ -1,5 +1,5 @@
 from chat_bot_session_ui.src.models import GPTCall 
-from chat_bot_session_ui.src.context_manager import load_env
+from chat_bot_session_ui.src.utils import load_env
 from chat_bot_session_ui.src.agent_loader import LLMPipelineSessionManager
 from collections.abc import Generator
 import uuid 
@@ -21,7 +21,7 @@ def test_streaming() :
             print(token,end="",flush=True)
     print("### end running streaming test")
 
-def test_llm_pipeline_add_new_element() :
+def test_llm_pipeline_sessions_manager_add_new_element() :
     print("### start running llm pipline test ###")
     with load_env(["OPENAI_API_KEY_TEST"]) : 
         key = os.environ.get("OPENAI_API_KEY_TEST") 
@@ -56,7 +56,7 @@ def test_llm_pipeline_add_new_element() :
         assert(size_after_add == size_before_add+1)
         print("### end running llm pipeline test")
 
-def test_llm_pipeline_check_exsisting_element() : 
+def test_llm_pipeline_sessions_manager_check_exsisting_element() : 
     print("### start running checking esisting element ###") 
     with load_env(["OPENAI_API_KEY_TEST"]) : 
         key = os.environ.get("OPENAI_API_KEY_TEST") 

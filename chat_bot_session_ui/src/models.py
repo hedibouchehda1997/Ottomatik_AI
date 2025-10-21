@@ -1,5 +1,5 @@
 
-from .context_manager import load_env
+from .utils import load_env
 import os
 from openai import OpenAI
 

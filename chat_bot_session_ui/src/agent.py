@@ -1,8 +1,7 @@
 from openai import OpenAI
 import os
-
 from dotenv import load_dotenv, find_dotenv
-from chat_bot_session_ui.src.context_manager import load_env
+from chat_bot_session_ui.src.utils import load_env
 
 # --- 1. Define the Tavily search tool ---
 def tavily_search(query: str) -> str:
