@@ -1,13 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from .models import GPTCall
 from .utils import load_env
 import asyncio
 import os 
 
 app = FastAPI()
+base_dir = os.path.dirname(os.path.abspath(__file__))
+templates_path = os.path.join(base_dir, "templates")
+templates = Jinja2Templates(directory=templates_path)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,13 +30,19 @@ with load_env(["OPENAI_API_KEY"]) :
     )
 
 @app.get("/chat",response_class=HTMLResponse) 
-def get_table_page() : 
+def get_table_page(request : Request) : 
+    data_2_send = {
+        "user" : "John Doe", 
+        "age" : 30 , 
+        "skills" : "python"
+    }
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "chatbot.html")
     print(html_path)
-    if os.path.exists(html_path):
-        with open(html_path, "r", encoding="utf-8") as f:
-            return f.read()
+    return templates.TemplateResponse("chatbot.html", {"request":request,"data": data_2_send})
+    # if os.path.exists(html_path):
+    #     with open(html_path, "r", encoding="utf-8") as f:
+    #         return f.read()
 
 @app.get("/tests",response_class=HTMLResponse)
 def get_chat_page() : 

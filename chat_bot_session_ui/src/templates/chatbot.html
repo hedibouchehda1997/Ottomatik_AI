@@ -416,7 +416,18 @@
     }
 </style>
 
+<script id="data-json" type="application/json">
+        {{ data | tojson }}
+</script>
+
 <!-- Monaco loader (from CDN) -->
+<script>
+    console.log("zebi")
+    window.addEventListener("DOMContentLoaded", () => {
+            const data = JSON.parse(document.getElementById("data-json").textContent);
+            console.log("Data from FastAPI:", data);
+        });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
 
 <div class="app-root-flex">
@@ -519,6 +530,7 @@
 
 <script>
 (function() {
+
     function escapeHtml(str) {
         return str.replace(/[&<>"']/g, function(match) {
             switch (match) {
