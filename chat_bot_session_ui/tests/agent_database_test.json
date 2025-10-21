@@ -1,0 +1,54 @@
+[
+    {
+        "user_id": "d3ce86ed86474f1f934ce78f3986efbb",
+        "agent_id": "92a3875011b246f697efafb3f733eaf9",
+        "version": 0,
+        "agent_details": {
+            "agent_type": "React",
+            "model": "gpt-4",
+            "system_prompt": "You are a helpful assitant ",
+            "tools": [
+                "tavily_search"
+            ]
+        }
+    },
+    {
+        "user_id": "1ef4fadb31ca4cc5b2619b5561ec13aa",
+        "agent_id": "b540e8d32a654ff9a38be598b2a74858",
+        "version": 0,
+        "agent_details": {
+            "agent_type": "Tool calling",
+            "model": "gpt-3.5-turbo",
+            "system_prompt": "You are a helpful assistant",
+            "tools": [
+                "tavily_search"
+            ]
+        }
+    },
+    {
+        "user_id": "0cdad08b2d634d7c846ad13634f70f33",
+        "agent_id": "2531fe3d34884dcd90f990aa59613bfc",
+        "version": 0,
+        "agent_details": {
+            "agent_type": "Tool calling",
+            "model": "gpt-3.5-turbo",
+            "system_prompt": "You are a helpful assistant",
+            "tools": [
+                "tavily_search"
+            ]
+        }
+    },
+    {
+        "user_id": "cc9fbd0a193843d9ba21e40029ac9b75",
+        "agent_id": "006b2f8aadb04698af85d787bf793b13",
+        "version": 0,
+        "agent_details": {
+            "agent_type": "Tool calling",
+            "model": "gpt-3.5-turbo",
+            "system_prompt": "You are a helpful assistant",
+            "tools": [
+                "tavily_search"
+            ]
+        }
+    }
+]

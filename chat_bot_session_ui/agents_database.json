@@ -11,5 +11,18 @@
                 "tavily_search"
             ]
         }
+    },
+    {
+        "user_id": "74043237d337409d9c3d53a3da276f7b",
+        "agent_id": "d63048a570ed47deaa1a5fe556befa6b",
+        "version": 0,
+        "agent_details": {
+            "agent_type": "Tool calling",
+            "model": "gpt-3.5-turbo",
+            "system_prompt": "You are a helpful assistant",
+            "tools": [
+                "tavily_searcg"
+            ]
+        }
     }
 ]

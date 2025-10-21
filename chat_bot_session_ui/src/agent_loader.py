@@ -1,4 +1,5 @@
 from typing import List, Dict, Tuple
+from chat_bot_session_ui.src.agent import Agent 
 import json
 import uuid  
 
@@ -35,21 +36,42 @@ class DataLoader:
             self.new_data.append(new_raw_with_metrics)
 
 
-class LLMPipeline:
+class LLMPipelineSessionManager:
     def __init__(
         self,
-        agent_details: Dict,
+        json_database : str,
+        agent:Agent=None 
+    ):
+        self.json_database = json_database
+
+        self.agent  = agent
+        try:
+            with open(self.json_database, "r") as f:
+                self.agents_database = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("error in opening data base")
+            self.agents_database = []
+
+        print("json_database") 
+        print(self.json_database)
+        print("agents_database") 
+        print(self.agents_database)    
+    def add_or_update_agent_version(
+        self, 
+        agent_details : Dict,
         agent_id: str,
         user_id: str = "user0",
         version: int = 0,
-        agent_title: str = "Agent"
-    ):
+        agent_title: str = "Agent", 
+        json_database: str = "agents_database.json"
+    )  : 
         self.user_id = user_id
         self.version = version
         self.agent_details = agent_details
         self.agent_id = agent_id
         self.agent_title = agent_title
-        self.database_agents = None
+    
+
 
     def compare_details(new_details, old_details):
         changes = {}
@@ -65,26 +87,14 @@ class LLMPipeline:
         return None
 
     def check_if_agent_exsist(self, user_id: str, agent_id: str,version: str):
-        try:
-            with open("agents_database.json", "r") as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = []
-        for item in data:
+        
+        for item in self.agents_database:
             if item.get('user_id') == user_id and item.get('agent_id') == agent_id and item.get('version') == version:
                 return True
         return False
 
     def save(self):
-        # Read current agents from file
-        try:
-            with open("agents_database.json", "r") as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = []
-        if not data:
-            data = []
-        self.database_agents = data
+
         # Check if agent exists before saving
         if self.check_if_agent_exsist(self.user_id, self.agent_id,self.version):
             print("agent exisit")
@@ -95,22 +105,28 @@ class LLMPipeline:
         new_agent["version"] = self.version
         new_agent["agent_details"] = self.agent_details
         if self.version != 0:
-            zero_version = self.find_version_zero(self.database_agents, self.user_id, self.agent_id)
+            zero_version = self.find_version_zero(self.agents_database, self.user_id, self.agent_id)
             if zero_version:
                 changes = self.compare_details()
                 new_agent = {**new_agent, **changes}
-        self.database_agents.append(new_agent)
+        self.agents_database.append(new_agent)
         # Write entire agents array back to file in write mode
-        with open("agents_database.json", "w") as f:
+        with open(self.json_database, "w") as f:
             print("new_agent")
             print(new_agent)
-            json.dump(self.database_agents, f, indent=4)
+            json.dump(self.agents_database, f, indent=4)
 
-    def build_agent(self)
+    def get_count_of_database(self) : 
+        return len(self.agents_database)
+
+    def build_agent(self) : 
+        pass 
+        #for now we only have a dummy version that only call a openai 
+        
 
 
 class AgentLoader:
-    def __init__(self, agent: LLMPipeline, data_loader: DataLoader):
+    def __init__(self, agent: LLMPipelineSessionManager, data_loader: DataLoader):
         self.agent = agent
         self.data_loader = data_loader
 
@@ -168,13 +184,16 @@ In unsupervised learning, models are trained on unlabeled data and must discover
         "tools": ["tavily_search"]
     }
 
-    llm_pipeline = LLMPipeline(
+    llm_pipeline = LLMPipelineSessionManager("agents_database.json")
+
+    llm_pipeline.add_or_update_agent_version(
         user_id=user_id,
         agent_id=agent_id,
         version=version,
         agent_title=agent_title,
         agent_details=agent_details
     )
+
 
     llm_pipeline.save()
 
