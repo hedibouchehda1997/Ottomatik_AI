@@ -45,20 +45,34 @@ def get_table_page(request : Request) :
     #         return f.read()
 
 @app.get("/tests",response_class=HTMLResponse)
-def get_chat_page() : 
+def get_chat_page(request : Request) : 
+    data_2_send = {
+        "user" : "John Doe", 
+        "age" : 30 , 
+        "skills" : "python"
+    }
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "table.html")
-    if os.path.exists(html_path):
-        with open(html_path, "r", encoding="utf-8") as f:
-            return f.read()
+    return templates.TemplateResponse("table.html", {"request":request,"data": data_2_send})
+
+    # if os.path.exists(html_path):
+    #     with open(html_path, "r", encoding="utf-8") as f:
+    #         return f.read()
 
 @app.get("/agent_config",response_class=HTMLResponse)
-def get_config_page() : 
+def get_config_page(request : Request) : 
+    data_2_send = {
+        "user" : "John Doe", 
+        "age" : 30 , 
+        "skills" : "python"
+    }
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "agent_config.html")
-    if os.path.exists(html_path):
-        with open(html_path, "r", encoding="utf-8") as f:
-            return f.read()
+    return templates.TemplateResponse("agent_config.html", {"request":request,"data": data_2_send})
+
+    # if os.path.exists(html_path):
+    #     with open(html_path, "r", encoding="utf-8") as f:
+    #         return f.read()
 
 @app.get("/response") 
 async def llm_response(prompt:str) : 
