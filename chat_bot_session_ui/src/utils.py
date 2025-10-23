@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from dotenv import load_dotenv, find_dotenv
 from typing import List, Dict, Tuple
 import csv
-import os
+
 
 @contextmanager 
 def load_env(api_keys_list:List[str]) : 
@@ -113,7 +113,7 @@ class DataLoader :
 
 
 
-def create_csv_in_tests(filename):
+    def create_csv_in_tests(filename):
 
     tests_dir = os.path.join(os.getcwd(), "tests")
     os.makedirs(tests_dir, exist_ok=True)

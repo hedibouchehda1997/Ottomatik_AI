@@ -1,0 +1,2 @@
+info : calling : gpt-3.5-turboinfo : User prompt : 
+ tell me three jokesinfo : Number of tokens for user prompt : [73457, 757, 2380, 32520]

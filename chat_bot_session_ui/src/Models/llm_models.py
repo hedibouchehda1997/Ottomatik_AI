@@ -3,57 +3,12 @@
         #Here we declare the interfaces that will be used in other repos of this code 
         #For example, if we want to use some openai sdk we instiantiate the corresponding object from this file and set it we the right model (eg gpt-4)
 
-import tiktoken 
 from typing import Dict, List, Tuple
 from src.utils.custom_logger import Logger
+from src.utils.tokens_utils import TokenCounter 
+from .openai_models import GPTCall
 
 
-#This class will be used to keep track of the number of token for each system and user prompt
-#for now we only handle modal_type equal text-to-text
-class TokenCounter : 
-    def __init__(self,model:str,logger:Logger,modal_type:str="text-to-text") : 
-        """
-        model : str = the model set on the LLMCall object 
-        modal_type : str = modal type of the LLMCall (for now we only handle text-to-text)
-        """
-        self.model = model 
-        self.modal_type = modal_type 
-        self.token_count = []
-        self.encoding = tiktoken.encoding_for_model(model) 
-        self.logger = logger 
-    def append_new_prompt_pair(self,prompt : Dict) : 
-        """
-        This function will take a pair of (system_prompt,user prompt) or (user_prompt), compute the number of token \
-        for each each prompt and append them to token_count
-        """
-
-        if len(prompt) == 2 : 
-            system_prompt_tokens_count = self.encoding.encode(prompt["system"])
-            user_prompt_token_count = self.encoding.encode(prompt["user"])
-            self.token_count.append({
-                "system_prompt" : prompt["system"], 
-                "system_prompt_tokens_count" : system_prompt_tokens_count,
-                "user_prompt" : prompt["user"],
-                "user_prompt_token_count" : user_prompt_token_count
-            })
-            self.logger.info(f"System prompt : \n{prompt["system"]}",True)
-            self.logger.info(f"Number of tokens of system prompt : {system_prompt_tokens_count}")
-            self.logger.info(f"User prompt : \n {prompt["user"]}")
-            self.logger.info(f"Number of tokens for user prompt : {user_prompt_token_count}")
-            
-            
-            
-        elif len(prompt) == 1 : 
-            user_prompt_token_count = self.encoding.encode(prompt["user"])
-            self.token_count.append({
-                "user_prompt" : prompt["user"],
-                "user_token_count" : user_prompt_token_count
-            })
-            self.logger.info(f"User prompt : \n {prompt["user"]}")
-            self.logger.info(f"Number of tokens for user prompt : {user_prompt_token_count}")
-        else : 
-            raise ValueError("new prompt pair have an incorrect size") 
-        
 
 #This object will contain all the details related to setting the llm model
 class LLMDataLoader :
@@ -90,16 +45,19 @@ class LLMCall :
                 modal_type : str = to precise the type of input/output that will be used in the LLMCall (for now it handles only text-to-text)
                 logger : Logger  = object to keep try of the calls 
         """
-        self.token_counter = TokenCounter(model=model,modal_type=modal_type)
         self.llm_data_loader = llm_data_loader 
         self.logger = logger 
+        self.token_counter = TokenCounter(model=self.llm_data_loader.model,modal_type=self.llm_data_loader.modal_type,logger=self.logger)
         if self.llm_data_loader.modal_type == "text-to-text" : 
-            if self.model.startswith("gpt") : 
-                self.model_client = GPTCall(model_specs{
-                        "api_key" : self.llm_data_loader.api_key, 
-                        "model" : self.llm_data_loader.model, 
-                        **self.llm_data_loader.llm_spec
-                })
+            if self.llm_data_loader.model.startswith("gpt") : 
+                self.model_client = GPTCall(model_specs={
+                                                "api_key" : self.llm_data_loader.api_key, 
+                                                "model" : self.llm_data_loader.model, 
+                                                **self.llm_data_loader.llm_spec},
+                                                token_counter = self.token_counter, 
+                                                logger = logger )
+                print("GPTCall created correctly ")
+                
 
     def __call__(self,messages:List[Dict]) : 
         return self.model_client(messages)
