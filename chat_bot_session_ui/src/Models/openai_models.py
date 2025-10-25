@@ -35,12 +35,19 @@ class GPTCall :
             sys_user_prompt_pair[message["role"]] = message["content"]
         self.token_counter.append_new_prompt_pair(sys_user_prompt_pair)
         try : 
+            print("parameters on gpt call ") 
+            print(self.call_input)
             response = self.gpt_client.chat.completions.create(**self.call_input) 
-            response = response.choices[0].message.content.strip()
-            
-            return response
+            print("response") 
+            print(type(response))
+            if isinstance(response,str) : 
+                return response.choices[0].message.content.strip()
+            else : 
+                return response 
         except Exception as e :  
+            print(f"{e}")
             self.logger.error(f"error calling model : {e}")
+
 
 
 

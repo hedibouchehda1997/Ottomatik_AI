@@ -1,2 +1,4 @@
-info : calling : gpt-3.5-turboinfo : User prompt : 
- tell me three jokesinfo : Number of tokens for user prompt : [73457, 757, 2380, 32520]
+info : calling : gpt-3.5-turbo
+info : User prompt : 
+ tell me three jokes
+info : Number of tokens for user prompt : [73457, 757, 2380, 32520]

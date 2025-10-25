@@ -19,7 +19,7 @@ class Logger :
     def build_logging_page(self) : 
         with open(self.log_file_path,"w") as file : 
             for logging_content in self.logging_contents :
-                content = f"{logging_content[0]} : {logging_content[1]}"
+                content = f"{logging_content[0]} : {logging_content[1]}" + "\n"
                 file.write(content)
 
 
