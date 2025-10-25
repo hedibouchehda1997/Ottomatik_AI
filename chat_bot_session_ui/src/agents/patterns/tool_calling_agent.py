@@ -35,11 +35,8 @@ class ToolCallingAgent :
     def think(self,query:str) : 
         messages = [{"role":"system","content":self.sys_prompt},
                     {"role":"user","content":f"User query : {query}"}] 
-        self.thinking_res = self.llm_call(messages) 
+        return self.llm_call(messages) 
         
-        if isinstance(self.thinking_res,str) : 
-            print("no streaming mode ")
-
 
     def get_sys_prompt(self) : 
         return self.sys_prompt  
@@ -105,28 +102,55 @@ class ToolCallingAgent :
         self.logger.info(f"{self.name} agent final response : \n {response}\n")
         return response 
 
+    def pipeline_for_streaming(self,first_response_stream) : 
+        """
+        first_response_stream : the stream result of self.think when we are in case of streaming
+        """
+        thinking_response  = ""
+        response_only = ""
+        got_to_response = False
+        for chunk in first_response_stream : 
+            delta = getattr(chunk.choices[0].delta, 'content', None)
+            if delta:
+                # print(delta)
+                thinking_response += delta
+                # print(thinking_response)
+                # print("\n")
+                if got_to_response : 
+                    if "<response>" in response_only : 
+                        if delta !="</"  : 
+                            yield delta
+                        else : 
+                            break 
+                        response_only += delta 
+                    else : 
+                        response_only += delta 
+                else : 
+                    if "</think>" in thinking_response : 
+                        response_start = ""
+                        print("****************** thinking process ended *****************")
+                        got_to_response = True 
 
     def __call__(self,query:str) : 
         print("calling tool from tool calling agent ")
         self.logger.info( f"Calling agent : {self.name} \n") 
         self.logger.info( f"User query : {query} \n")
     
-        self.think(query) 
+        thinking_response = self.think(query) 
+        if isinstance(thinking_response,str) : 
+            res_thinking  = self.ParseThinking() 
 
-        res_thinking  = self.ParseThinking() 
-        print(".....type of res_thinking")
-        print(type(res_thinking))
-
-        if isinstance(res_thinking,str)  : 
-            print("got final response from the details ")
-            pass 
-        elif isinstance(res_thinking,Dict) :
-            act_response = self.act(res_thinking) 
-            tools_details = f"""
+            if isinstance(res_thinking,str)  : 
+                return res_thinking
+            elif isinstance(res_thinking,Dict) :
+                act_response = self.act(res_thinking) 
+                tools_details = f"""
 {json.dumps(res_thinking)} 
 {act_response}
             """.strip()
-            final_response = self.response_generator(query,tools_details)
-            print("final respone")
-            print(final_response)
+                final_response = self.response_generator(query,tools_details)
+                return final_response
+        else : 
+            print("we are in case of streamin")
+            return self.pipeline_for_streaming(thinking_response)
 

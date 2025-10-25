@@ -12,22 +12,51 @@ def test_tool_calling_agent_without_streaming() :
     logger = Logger(logger_file_path) 
     with load_env(["OPENAI_API_KEY_TEST"]) : 
         key = os.environ.get("OPENAI_API_KEY_TEST") 
-        print("printing the key") 
         llm_data_loader = LLMDataLoader(model="gpt-4",api_key=key,llm_spec={})
         llm_call = LLMCall(llm_data_loader=llm_data_loader,logger=logger)
         tool_calling_agent = ToolCallingAgent(llm_call=llm_call, tools=[TavilySearchTool], 
                                               system_prompt="you are a helpful assistant", 
                                               logger=logger)
-        first_query =  "is physics a field of science"
-        tool_calling_agent(first_query) 
-        print("\n\n\n")
-        second_query = "who won ufc 311" 
-        tool_calling_agent(second_query)
-
-        
-
-        
-        
-
+        # first_query =  "is physics a field of science"
+        # first_response = tool_calling_agent(first_query) 
+        # print(f"query : \n{first_query} \nresponse : \n{first_response}")
+        # second_query = "who won ufc 311" 
+        # second_response = tool_calling_agent(second_query)
+        # print(f"query : \n{second_query} \nresponse : \n{second_response}")
     print("### end test calling agent without streaming ###")
+
+
+def test_tool_calling_agent_with_streaming() : 
+    print("### start test calling agent with streaming ###")
+    logger_file_path = create_txt_file_in_tests("tool_calling_agent_test_with_streaming.txt")
+    logger = Logger(logger_file_path) 
+    with load_env(["OPENAI_API_KEY_TEST"]) : 
+        key = os.environ.get("OPENAI_API_KEY_TEST") 
+        llm_data_loader = LLMDataLoader(model="gpt-4",api_key=key,llm_spec={"stream":True})
+        llm_call = LLMCall(llm_data_loader=llm_data_loader,logger=logger)
+        tool_calling_agent = ToolCallingAgent(llm_call=llm_call, tools=[TavilySearchTool], 
+                                              system_prompt="you are a helpful assistant", 
+                                              logger=logger)
+        first_query =  "is physics a field of science"
+        first_response = tool_calling_agent(first_query) 
+        print(type(first_response))
+        clean_response = ""
+        for chunk in first_response: 
+            clean_response += chunk
+        
+        print("clean_response") 
+        print(clean_response.strip())
+        print("/////////")
+        # # If you want to collect the response content into a variable:
+        # response_only = "".join(chunk for chunk in first_response)
+        # print("\nresponse_only")
+        # print(response_only)
+
+                    
+                # thinking_response += delta 
+        # print(f"query : \n{first_query} \nresponse : \n{first_response}")
+    #     second_query = "who won ufc 311" 
+    #     second_response = tool_calling_agent(second_query)
+    #     print(f"query : \n{second_query} \nresponse : \n{second_response}")
+    # print("### end test calling agent with streaming ###")
 

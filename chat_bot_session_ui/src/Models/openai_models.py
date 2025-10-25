@@ -41,7 +41,7 @@ class GPTCall :
                 response = response_obj.choices[0].message.content.strip()
                 return  response           
             except Exception as e : 
-                print("streaming case ")
+                return response_obj
         except Exception as e :  
             print(f"{e}")
             self.logger.error(f"error calling model : {e}")
