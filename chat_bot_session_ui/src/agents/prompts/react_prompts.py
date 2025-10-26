@@ -59,6 +59,6 @@ Remember:
 - Always base your reasoning on the actual observations from tool use.
 - If a tool returns no results or fails, acknowledge this and consider using a different tool or approach.
 - Provide a final answer only when you're confident you have sufficient information.
-- If you cannot find the necessary information after using available tools, admit that you don't have enough information to answer the query confidently.
+- If you cannot find the necessary information after using available tools, admit that you don't have enough information to answer the query confidently.""".strip()
 
 

@@ -1,1 +1,27 @@
-from chat_bot_session_ui.src.agents.patterns.react_agent import  ToolCallingAgent
+from chat_bot_session_ui.src.agents.patterns.react_agent import  ReactAgent
+from chat_bot_session_ui.src.utils.custom_logger import Logger
+from chat_bot_session_ui.src.utils.env_utils import load_env
+from chat_bot_session_ui.src.utils.tests_utils import create_txt_file_in_tests
+from chat_bot_session_ui.src.models.llm_models import TokenCounter, LLMDataLoader, LLMCall
+from chat_bot_session_ui.src.tools.web_search_tools import TavilySearchTool
+import os 
+
+
+def test_react_agent_without_streaming() : 
+    print("### start test react agent without streaming ###")
+    logger_file_path = create_txt_file_in_tests("react_agent_without_streaming.txt")
+    logger = Logger(logger_file_path) 
+    with  load_env(["OPENAI_API_KEY_TEST"]) : 
+        key = os.environ.get("OPENAI_API_KEY_TEST") 
+        llm_data_loader = LLMDataLoader(model="gpt-4",api_key=key,llm_spec={})
+        llm_call = LLMCall(llm_data_loader=llm_data_loader,logger=logger)
+        react_agent = ReactAgent(llm_call=llm_call, tools=[TavilySearchTool], 
+                                 logger=logger )
+        react_agent.think("what was the nationality of the men's winner of australian open")
+ 
+
+
+    print("### end test react agent without streaming ###")
+
+
+
