@@ -25,6 +25,7 @@ Instructions:
 1. Analyze the query, previous reasoning steps, and observations.
 2. Decide on the next action: use a tool or provide a final answer.
 3. You can use the information from previous query history if necessary 
+4. For your final response , try to develop a paragraph not just a simple sentence
 5. Respond in the following xml format:
 
 
@@ -45,9 +46,9 @@ If you have enough information to answer the query,  your response should be exa
 <think>
     Thinking process before generating response 
 </think>
-<answer> 
+<response> 
     Your comprehensive answer to the query
-</answer>
+</response>
 
 
 

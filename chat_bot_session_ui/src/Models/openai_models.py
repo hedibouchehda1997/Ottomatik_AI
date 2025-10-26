@@ -2,8 +2,8 @@
     #Here we declare the different pipelines of OpenAI sdk. For example the ones used to do queries on models like gpt and other sdk for multi-modal input\output
 
 from typing import Dict, List
-from src.utils.custom_logger import Logger
-from src.utils.tokens_utils import TokenCounter 
+from chat_bot_session_ui.src.utils.custom_logger import Logger
+from chat_bot_session_ui.src.utils.tokens_utils import TokenCounter 
 from openai import OpenAI
 
 #This class will be used to do queries on gpt models 

@@ -4,8 +4,8 @@
         #For example, if we want to use some openai sdk we instiantiate the corresponding object from this file and set it we the right model (eg gpt-4)
 
 from typing import Dict, List, Tuple
-from src.utils.custom_logger import Logger
-from src.utils.tokens_utils import TokenCounter 
+from chat_bot_session_ui.src.utils.custom_logger import Logger
+from chat_bot_session_ui.src.utils.tokens_utils import TokenCounter 
 from .openai_models import GPTCall
 
 

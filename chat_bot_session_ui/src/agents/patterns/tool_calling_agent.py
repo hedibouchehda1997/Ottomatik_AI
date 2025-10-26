@@ -1,7 +1,7 @@
-from src.agents.prompts.tool_calling_prompts import tool_calling_sys_prompt, tool_calling_response_generator
-from src.models.llm_models import LLMCall, LLMDataLoader
-from src.utils.custom_logger import Logger 
-from src.tools.tools import Tool 
+from chat_bot_session_ui.src.agents.prompts.tool_calling_prompts import tool_calling_sys_prompt, tool_calling_response_generator
+from chat_bot_session_ui.src.models.llm_models import LLMCall, LLMDataLoader
+from chat_bot_session_ui.src.utils.custom_logger import Logger 
+from chat_bot_session_ui.src.tools.tools import Tool 
 from typing import Dict, List
 import time
 import re 
@@ -139,7 +139,6 @@ class ToolCallingAgent :
                         self.response_only += delta 
                 else : 
                     if "</think>" in self.thinking_res : 
-                        response_start = ""
                         got_to_response = True 
 
         tool_info = self.ParseThinking()

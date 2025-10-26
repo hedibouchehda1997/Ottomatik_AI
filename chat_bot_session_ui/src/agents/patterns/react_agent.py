@@ -1,7 +1,7 @@
-from src.agents.prompts.react_prompts import react_prompt 
-from src.models.llm_models import LLMCall, LLMDataLoader
-from src.utils.custom_logger import Logger 
-from src.tools.tools import Tool 
+from chat_bot_session_ui.src.agents.prompts.react_prompts import react_prompt 
+from chat_bot_session_ui.src.models.llm_models import LLMCall, LLMDataLoader
+from chat_bot_session_ui.src.utils.custom_logger import Logger 
+from chat_bot_session_ui.src.tools.tools import Tool 
 from typing import Dict, List
 import time
 import re 
@@ -40,7 +40,7 @@ class ReactAgent :
         res_if_good = {}
         print("******************llm_response ************")
         print(llm_response)
-        pattern = r"<action>(.*?)</action>" 
+        pattern = r"<action>(.*?)</action>"  
         match = re.search(pattern ,llm_response,re.DOTALL) 
         if  match  :
             print("matchy matchy matchy matchy matchy !!!!! ")
@@ -99,10 +99,10 @@ class ReactAgent :
 
 
         else :
-            pattern = r"<answer>(.*?)</answer>"
+            pattern = r"<response>(.*?)</response>"
             match = re.search(pattern ,llm_response,re.DOTALL) 
             if match : 
-                res_if_good["answer"] = match.group(1) 
+                res_if_good["response"] = match.group(1) 
                 return res_if_good
             else : 
                 return False  
@@ -139,16 +139,52 @@ class ReactAgent :
         # print(result) 
         return result 
 
+    def think_with_stream(self,query:str) : 
+        self.logger.info(f"{self.name} starts \n")
+        full_prompt = react_prompt.format(query=query,tools=self.tools_description, history_action=self.history_action)
+        messages = [{"role":"user","content":full_prompt}]
+        thinking_result = self.llm_call(messages) 
+        response_only = "" 
+        thinking_res = ""
+        got_to_response = False
+        got_all_tool_info = True
+
+        for chunk in thinking_result : 
+            delta = getattr(chunk.choices[0].delta, 'content', None)
+            if delta : 
+                thinking_res += delta
+                if got_to_response :
+                    if "<response>" in response_only :
+                        if delta !="</"  :       
+                            yield delta
+                            # print(delta,end="",flush=True)
+                            # yield delta
+                        else : 
+                            break 
+                    elif "<action>" in response_only : 
+                        if got_all_tool_info : 
+                            if delta != "</":
+                                pass 
+                            else : 
+                                got_all_tool_info = False 
+                                yield "\n\n ended loading tool description !!!"
+
+                    response_only += delta 
+                else :
+                    if "</think>" in thinking_res : 
+                        got_to_response = True 
+
+
 
      
     def think(self,query:str) :  
         self.logger.info(f"{self.name} starts \n")
         full_prompt = react_prompt.format(query=query,tools=self.tools_description, history_action=self.history_action)
-
         messages = [{"role":"user","content":full_prompt}]
         
         thinking_result = self.llm_call(messages) 
-        # return thinking_result
+        # print("\n\n\n")
+        # print(thinking_result)
         input_dict = self.parse_llm_response(thinking_result)
 
         if self.current_iteration > self.max_iteration : 
@@ -168,19 +204,35 @@ class ReactAgent :
                     name = ""
                     if self.human_in_loop : 
                         name = input("Human feedback : ") 
-                           
+                
                     step_for_history = self.ParseForHistory(input_dict,act_res,name)
-                    print("step for history ")
-                    print(step_for_history)
                     
-                    # self.history_action += step_for_history + "\n" 
+                    self.history_action += step_for_history + "\n" 
 
-        #             print("returning a step ")
-        #             return step_for_history, "step" 
-        #     if "answer" in list(input_dict.keys()) :
-        #             print("returning final value ") 
-        #             return input_dict["answer"], "final"
-        #             self.end_reasoning = True
+                    return step_for_history, "step" 
+            if "response" in list(input_dict.keys()) :
+                    print("returning final value ") 
+                    return input_dict["response"], "final"
+                    self.end_reasoning = True
+
+
+    def pipeline(self,query) : 
+
+        self.logger.info(f"user query : {query}")
+        # print("started the pipe line ")
+        while self.end_reasoning is False :  
+            final_result, pos = self.think(query) 
+            if isinstance(pos,str) : 
+                yield final_result 
+                if pos == "final" : 
+                    # print("got to the final response") 
+                    self.end_reasoning = False 
+                    self.history_action = "" 
+                    query_response_hist = f"""user query : {query}
+response : {final_result}
+"""
+                    break 
+
 
 
 
