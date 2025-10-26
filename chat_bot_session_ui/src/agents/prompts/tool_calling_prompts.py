@@ -1,5 +1,5 @@
 tool_calling_sys_prompt = """ 
-            {system_prompt} 
+{system_prompt} 
 Based on the user query, you need to find the suitable tool to call in order to respond to it. 
 During thinking, if you consider that you have enough knowledge about the query, there's no need to call a tool
 

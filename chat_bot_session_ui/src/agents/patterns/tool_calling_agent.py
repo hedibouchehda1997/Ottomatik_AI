@@ -3,6 +3,7 @@ from src.models.llm_models import LLMCall, LLMDataLoader
 from src.utils.custom_logger import Logger 
 from src.tools.tools import Tool 
 from typing import Dict, List
+import time
 import re 
 import json 
 
@@ -102,42 +103,79 @@ class ToolCallingAgent :
         self.logger.info(f"{self.name} agent final response : \n {response}\n")
         return response 
 
-    def pipeline_for_streaming(self,first_response_stream) : 
-        """
-        first_response_stream : the stream result of self.think when we are in case of streaming
-        """
-        thinking_response  = ""
-        response_only = ""
+    def pipeline_for_streaming(self,query) : 
+        
+
+        self.thinking_res  = ""
+        self.response_only = ""
         got_to_response = False
-        for chunk in first_response_stream : 
+        got_all_tool_info = True
+        for chunk in self.thinking_response : 
             delta = getattr(chunk.choices[0].delta, 'content', None)
             if delta:
                 # print(delta)
-                thinking_response += delta
+                self.thinking_res += delta
                 # print(thinking_response)
                 # print("\n")
                 if got_to_response : 
-                    if "<response>" in response_only : 
+
+                    if "<response>" in self.response_only : 
                         if delta !="</"  : 
                             yield delta
                         else : 
                             break 
-                        response_only += delta 
+                        self.response_only += delta 
+                    elif "<action>" in self.response_only : 
+                        if got_all_tool_info : 
+                            if delta != "</" : 
+                                pass 
+                                # yield delta 
+                            else : 
+                                got_all_tool_info = False 
+                                yield "\n\n ended loading tool description !!!"
+                        # else :                                   
+                        #     break
                     else : 
-                        response_only += delta 
+                        self.response_only += delta 
                 else : 
-                    if "</think>" in thinking_response : 
+                    if "</think>" in self.thinking_res : 
                         response_start = ""
-                        print("****************** thinking process ended *****************")
                         got_to_response = True 
+
+        tool_info = self.ParseThinking()
+        yield f"\nTool info  \n\n {tool_info}"
+        # run_tool = input("\n\n run the tool : ") 
+        run_tool = "y"
+        if run_tool == "y" : 
+
+            yield "the tool is running ..... "
+
+            act_response = self.act(tool_info) 
+            tools_details = f"""
+{json.dumps(tool_info)} 
+{act_response}
+            """.strip()
+            final_response = self.response_generator(query,tools_details)
+            yield f"\n generating response .... \n\n"
+            for token in final_response :
+                delta = getattr(token.choices[0].delta, 'content', None)
+                if delta is not None : 
+                # print(delta)
+                    yield delta
+
+
+    # def print_full_response(self) : 
+    #     print("response only")
+    #     print(self.res)
 
     def __call__(self,query:str) : 
         print("calling tool from tool calling agent ")
         self.logger.info( f"Calling agent : {self.name} \n") 
         self.logger.info( f"User query : {query} \n")
     
-        thinking_response = self.think(query) 
-        if isinstance(thinking_response,str) : 
+    
+        self.thinking_response = self.think(query) 
+        if isinstance(self.thinking_response,str) : 
             res_thinking  = self.ParseThinking() 
 
             if isinstance(res_thinking,str)  : 
@@ -152,5 +190,5 @@ class ToolCallingAgent :
                 return final_response
         else : 
             print("we are in case of streamin")
-            return self.pipeline_for_streaming(thinking_response)
+            return self.pipeline_for_streaming(query)
 
