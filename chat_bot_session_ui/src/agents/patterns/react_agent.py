@@ -174,6 +174,16 @@ class ReactAgent :
                     if "</think>" in thinking_res : 
                         got_to_response = True 
 
+        # print("\n\n\n")
+        # thinking_res += "response>"
+        # print(thinking_res)
+
+        # if not got_all_tool_info :  
+        #     input_dict = self.parse_llm_response(thinking_res) 
+        #     print("input_dict")
+        #     print(input_dict)
+
+
 
 
      
