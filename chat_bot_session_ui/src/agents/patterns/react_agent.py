@@ -140,48 +140,65 @@ class ReactAgent :
         return result 
 
     def think_with_stream(self,query:str) : 
+        self.end_reasoning = False 
         self.logger.info(f"{self.name} starts \n")
-        full_prompt = react_prompt.format(query=query,tools=self.tools_description, history_action=self.history_action)
-        messages = [{"role":"user","content":full_prompt}]
-        thinking_result = self.llm_call(messages) 
-        response_only = "" 
-        thinking_res = ""
-        got_to_response = False
-        got_all_tool_info = True
+        while not self.end_reasoning : 
+            full_prompt = react_prompt.format(query=query,tools=self.tools_description, history_action=self.history_action)
+            messages = [{"role":"user","content":full_prompt}]
+            thinking_result = self.llm_call(messages) 
+            response_only = "" 
+            thinking_res = ""
+            got_to_response = False
+            got_all_tool_info = False
 
-        for chunk in thinking_result : 
-            delta = getattr(chunk.choices[0].delta, 'content', None)
-            if delta : 
-                thinking_res += delta
-                if got_to_response :
-                    if "<response>" in response_only :
-                        if delta !="</"  :       
-                            yield delta
-                            # print(delta,end="",flush=True)
-                            # yield delta
-                        else : 
-                            break 
-                    elif "<action>" in response_only : 
-                        if got_all_tool_info : 
-                            if delta != "</":
-                                pass 
+            for chunk in thinking_result : 
+                delta = getattr(chunk.choices[0].delta, 'content', None)
+                if delta : 
+                    thinking_res += delta
+                    if got_to_response :
+                        if "<response>" in response_only :
+                            self.end_reasoning = True 
+                            if delta !="</"  :       
+                                yield delta
+                                # print(delta,end="",flush=True)
+                                # yield delta
                             else : 
-                                got_all_tool_info = False 
-                                yield "\n\n ended loading tool description !!!"
+                                break 
+                        elif "<action>" in response_only : 
+                            if not got_all_tool_info : 
+                                if delta != "</":
+                                    pass 
+                                else : 
+                                    got_all_tool_info = True 
+                                    yield "\n\n ended loading tool description !!!"
 
-                    response_only += delta 
-                else :
-                    if "</think>" in thinking_res : 
-                        got_to_response = True 
+                        response_only += delta 
+                    else :
+                        if "</think>" in thinking_res : 
+                            got_to_response = True 
 
-        # print("\n\n\n")
-        # thinking_res += "response>"
-        # print(thinking_res)
 
-        # if not got_all_tool_info :  
-        #     input_dict = self.parse_llm_response(thinking_res) 
-        #     print("input_dict")
-        #     print(input_dict)
+
+            if  got_all_tool_info :  
+                thinking_res += "response>"
+                input_dict = self.parse_llm_response(thinking_res) 
+                yield f"called tool : {input_dict}"
+                
+                act_res = self.act(input_dict) 
+                if isinstance(act_res,bool) : 
+                    print("action wasn't executed correctly. Retrying ") 
+                    self.think(query)
+                elif isinstance(act_res,str) : 
+                    self.current_iteration += 1
+                    name = ""
+                    if self.human_in_loop : 
+                        name = input("Human feedback : ") 
+                    
+                    step_for_history = self.ParseForHistory(input_dict,act_res,name)
+                    # print("step_for_history")
+                    # print(step_for_history)
+                        
+                    self.history_action += step_for_history + "\n" 
 
 
 
