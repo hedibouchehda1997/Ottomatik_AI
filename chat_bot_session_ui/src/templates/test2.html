@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Files Example</title>
+    <style>
+        body {
+            background: #f7f9fb;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+        }
+        #selectFilesBtn {
+            background: linear-gradient(90deg, #4f8cff 0%, #50e6c1 100%);
+            border: none;
+            color: #fff;
+            padding: 14px 36px;
+            margin: 80px auto;
+            display: block;
+            font-size: 1.18rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 18px 0 #4f8cff25, 0 1.5px 4px 0 #50e6c11a;
+            transition: background 0.22s, transform 0.15s, box-shadow 0.22s;
+        }
+        #selectFilesBtn:hover,
+        #selectFilesBtn:focus {
+            background: linear-gradient(90deg, #367cff 0%, #27e0aa 100%);
+            box-shadow: 0 8px 28px 0 #4f8cff33, 0 2px 8px 0 #50e6c145;
+            transform: translateY(-2px) scale(1.04);
+            outline: none;
+        }
+        #selectFilesBtn:active {
+            background: linear-gradient(90deg, #1669bb 0%, #1db18d 100%);
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px 0 #50e6c133;
+        }
+        #fileList {
+            max-width: 540px;
+            margin: 30px auto;
+            background: #ffffffe6;
+            border-radius: 10px;
+            box-shadow: 0 1px 6px #4f8cff15;
+            padding: 18px 24px;
+            font-size: 1.06rem;
+            color: #284452;
+        }
+        #fileList ul {
+            padding-left: 18px;
+        }
+        #fileList li {
+            margin-bottom: 6px;
+            font-family: 'Fira Mono', 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+    <button id="selectFilesBtn">Select Files</button>
+    <input type="file" id="fileInput" style="display:none" multiple>
+    <div id="fileList"></div>
+    <script>
+        const selectBtn = document.getElementById('selectFilesBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+
+        selectBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function(event) {
+            fileList.innerHTML = '';
+            const files = Array.from(fileInput.files);
+            if (files.length === 0) return;
+
+            const ul = document.createElement('ul');
+            files.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = file.name;
+                ul.appendChild(li);
+                // Log to console as well
+                console.log(file.name);
+            });
+            fileList.appendChild(document.createTextNode('Selected file(s):'));
+            fileList.appendChild(ul);
+        });
+    </script>
+</body>
+</html>

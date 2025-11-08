@@ -1,403 +1,106 @@
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-    .app-root-flex {
-        display: flex;
-        width: 100vw;
-        min-height: 100vh;
-        background: #f7f9fb;
-    }
-
-    .sidebar-modern {
-        flex: 0 0 220px;
-        max-width: 240px;
-        min-width: 180px;
-        background: linear-gradient(120deg, #e4edfb 60%, #f4f7fa 100%);
-        box-shadow: 2px 0 16px -7px #739ccd20;
-        border-right: 1.5px solid #e6eaf4;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: stretch;
-        padding: 2.4rem 0 2rem 0;
-        z-index: 3;
-        transition: all 0.33s cubic-bezier(.46,0,.13,1);
-    }
-
-    .sidebar-brand {
-        color: #3667ad;
-        font-weight: bold;
-        font-size: 1.24em;
-        letter-spacing: 0.03em;
-        padding: 0 2.2rem 2.5rem 2.2rem;
-        user-select: none;
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Set</title>
+    <link rel="stylesheet" href="/static/table.css">
+    <style>
+      .table-title-controls {
         display: flex;
         align-items: center;
-        gap: 0.6em;
-    }
-    .sidebar-nav {
-        flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0 0.7rem 0 0.7rem;
-    }
-    .sidebar-nav-link {
-        display: flex;
-        align-items: center;
-        gap: 0.88em;
-        font-size: 1.1em;
-        font-weight: 500;
-        background: transparent;
-        border: none;
-        color: #254874;
-        padding: 0.94em 1.1em 0.94em 1.3em;
-        border-radius: 0.66em;
-        cursor: pointer;
-        margin-bottom: 0.23em;
-        transition: background 0.14s, color 0.16s, box-shadow 0.12s;
-        text-align: left;
-        outline: none;
-        box-shadow: 0 1.5px 10px 0 #b8c9ed15;
-        position: relative;
-        text-decoration: none;
-    }
-    .sidebar-nav-link.active, .sidebar-nav-link:focus, .sidebar-nav-link:hover {
-        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
-        color: #3667ad;
-        box-shadow: 0 1.5px 12px #c4def612;
-    }
-    .sidebar-nav-link .sidebar-emoji {
-        font-size: 1.16em;
-        margin-right: 0.3em;
-    }
-
-    /* Table & Cart Modern Layout */
-    .table-layout-flex {
-        display: flex;
-        width: 100%;
-        min-height: 100vh;
-        position: relative;
-        transition: all 0.5s cubic-bezier(.42,0,.13,1.2);
-    }
-    .show-table .interactive-table-container {
-        display: block;
-    }
-    .show-table .right-pane-detail {
-        display: none;
-    }
-    .show-table.detail-active .interactive-table-container,
-    .show-table.detail-active .right-pane-detail  {
-        display: block;
-    }
-    .show-table.detail-active {
-        /* On detail active, switch to row flex for desktop */
-        flex-direction: row;
-        transition: all 0.55s cubic-bezier(.42,0,.13,1.2);
-    }
-    .interactive-table-container {
-        flex: 1 1 0;
-        width: 100%;
-        transition: all 0.45s cubic-bezier(.6,0,.14,1.18);
-        padding: 2.2rem 2rem 2rem 1rem;
-        background: transparent;
-        box-sizing: border-box;
-        min-width: 0;
-        max-width: 100vw;
-        display: block;
-    }
-    .show-table.detail-active .interactive-table-container {
-        /* When cart is open: occupy 75% */
-        flex: 0 0 75%;
-        max-width: 75vw;
-    }
-    .right-pane-detail {
-        flex: 0 0 25%;
-        max-width: 450px;
-        min-width: 290px;
-        background: linear-gradient(125deg, #eef4fa 60%, #f7fcff 100%);
-        box-shadow: -6px 0 32px -10px #aeccf244, -1.5px 0 7px #b6d4fb11;
-        border-left: 1.7px solid #e2eaf8;
-        border-radius: 0 1.15em 1.15em 0;
-        margin-right: 0;
-        z-index: 12;
-        padding: 2.2rem 2.2rem 2.2rem 1.4rem;
-        display: none;
-        position: relative;
-        overflow-y: auto;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.38s cubic-bezier(.36,0,.13,1), box-shadow 0.40s;
-        will-change: opacity;
-    }
-    .show-table.detail-active .right-pane-detail.active {
-        display: block;
-        opacity: 1;
-        pointer-events: auto;
-        animation: slideInCartPane 0.35s cubic-bezier(.42,0,.13,1.18);
-    }
-    @keyframes slideInCartPane {
-        from { opacity: 0; transform: translateX(40px);}
-        to { opacity: 1; transform: translateX(0);}
-    }
-    /* Cart Modern Design */
-    .right-pane-detail {
-        font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
-        color: #235485;
-        background: linear-gradient(120deg, #eaf1fa 86%, #fafdff 100%);
-    }
-    .right-pane-detail .detail-title {
-        font-size: 1.14em;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        color: #325ba0;
-        display: flex;
-        align-items: center;
-        gap: 0.4em;
-        margin-bottom: 1.3em;
-        padding-bottom: 0.66em;
-        border-bottom: 1px solid #e1eaf9;
-        background: none;
-        box-shadow: none;
-    }
-    .right-pane-detail .detail-section {
-        background: linear-gradient(91deg, #f9fcfe 96%, #f4f8ff 100%);
-        border-radius: 0.88em;
-        box-shadow: 0 2px 13px #bcd9fa13;
-        padding: 1.2em 1.09em 1.14em 1.09em;
-        margin-bottom: 1.24em;
-        font-size: 1em;
-        color: #264a87;
-        transition: box-shadow 0.24s;
-        border: 1.2px solid #e6ecf4;
-    }
-    .right-pane-detail .detail-section strong {
-        color: #385e92;
-        font-weight: 700;
-        font-size: 1.05em;
-        letter-spacing: 0.01em;
-    }
-    .edit-textarea {
-        width: 100%;
-        border-radius: 0.48em;
-        background: #f9fbff;
-        border: 1.1px solid #cfe2f5;
-        color: #254874;
-        font-size: 1.04em;
-        font-family: inherit;
-        font-weight: 500;
-        padding: 0.7em 1em;
-        margin-top: 0.8em;
-        margin-bottom: 0.16em;
-        resize: vertical;
-        box-shadow: 0 2px 7px #b3dcff13;
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.16s;
-        min-height: 2.7em;
-        max-height: 18em;
-        overflow-y: auto;
-    }
-    .edit-textarea:focus {
-        border-color: #64a3ea;
-        box-shadow: 0 2px 13px #bde1fa38;
-        background: #f4fafd;
-    }
-    .edit-save-btn {
-        padding: 0.48em 1.26em;
-        border-radius: 1.2em;
-        background: linear-gradient(90deg,#51aefa 65%,#7ceee0 100%);
-        color: #fff;
-        font-weight: 600;
-        font-size: 1.05em;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 2px 10px #7ab1e020;
-        transition: background 0.18s, opacity 0.18s;
-        opacity: 0.96;
-    }
-    .edit-save-btn:active {
-        opacity: 0.8;
-        background: linear-gradient(90deg,#398ebf 70%,#ace0e8 100%);
-    }
-    .detail-close-btn {
-        background: none;
-        border: none;
-        color: #9baeca;
-        font-size: 1.7em;
-        font-weight: 400;
-        cursor: pointer;
+        gap: 0.65em;
         margin-left: auto;
-        margin-right: -0.42em;
-        line-height: 1;
-        padding: 0 0.1em;
-        transition: color 0.16s;
-    }
-    .detail-close-btn:hover {
-        color: #5f89bd;
-    }
-    /* Responsive for table/cart view */
-    @media (max-width: 1150px) {
-        .show-table.detail-active .interactive-table-container {
-            max-width: 68vw;
-            flex-basis: 66%;
-        }
-        .right-pane-detail {
-            max-width: 380px;
-            min-width: 180px;
-            padding: 1.7rem 1.1rem 1.7rem 0.9rem;
-        }
-    }
-    @media (max-width: 900px) {
-        .table-layout-flex {
-            flex-direction: column !important;
-        }
-        .show-table.detail-active .interactive-table-container,
-        .show-table.detail-active .right-pane-detail {
-            max-width: 100vw;
-            flex: unset;
-        }
-        .show-table.detail-active .right-pane-detail.active {
-            /* On mobile, make the cart overlay from the right, not beside */
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: auto;
-            bottom: 0;
-            min-width: min(98vw, 425px);
-            max-width: min(98vw, 425px);
-            box-shadow: -14px 0 50px 2px #a2bcee44;
-            border-radius: 0 0 0 0;
-            z-index: 120;
-            padding: 2.4rem 1.19em 1.18rem 1.25em;
-            animation: slideInCartPaneMobile 0.34s cubic-bezier(.52,0,.18,1.1);
-        }
-        @keyframes slideInCartPaneMobile {
-            from { opacity: 0; transform: translateX(80px);}
-            to { opacity: 1; transform: translateX(0);}
-        }
-    }
-    @media (max-width: 600px) {
-        .right-pane-detail {
-            padding: 1.1rem 0.7em 0.7rem 0.7em;
-            min-width: 0;
-            max-width: 100vw;
-                border-radius: 0;
-        }
-        .edit-textarea {
-            padding: 0.54em 0.5em;
-            font-size: 0.99em;
-        }
-    }
-
-    /* The rest of your original style remains unchanged below... */
-    .interactive-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        background: #fff;
-        border-radius: 1.1em;
-        box-shadow: 0 6px 32px -14px #abc7f05a, 0 1.5px 7px #b6d4fb1b;
-        overflow: hidden;
-        font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
-        font-size: 1.06em;
-        margin: 0;
-        table-layout: fixed;
-        user-select: none;
-    }
-    .interactive-table col {}
-    .interactive-table thead tr {
-        background: linear-gradient(90deg,#e7effc 60%, #f4f7fa 100%);
-    }
-    .interactive-table th {
-        color: #28559c;
-        font-weight: 700;
-        padding: 1.07em 1.08em;
-        text-align: left;
-        border-bottom: 2px solid #e5ecfa;
-        font-size: 1.045em;
-        letter-spacing: 0.01em;
-        user-select: none;
-    }
-    .interactive-table td {
-        color: #213a57;
-        font-weight: 500;
-        padding: 1.04em 1.08em;
-        background: transparent;
-        border-bottom: 1.3px solid #e9f2fc;
-        word-break: break-word;
-        vertical-align: top;
-        font-size: 1em;
-        transition: background 0.14s;
-        cursor: pointer;
-    }
-    .interactive-table tr:last-child td {
-        border-bottom: none;
-    }
-    .interactive-table td.selected-cell {
-        background: linear-gradient(90deg,#e6f4fd 79%,#dcf1ff 100%) !important;
-        box-shadow: 0 0 0 2px #44befa30 inset;
-        position: relative;
-        z-index: 1;
-        transition: background 0.15s;
-    }
-    .interactive-table td:hover:not(.selected-cell) {
-        background: linear-gradient(90deg,#f0f6ff 60%,#f7fbff 100%);
-    }
-    .interactive-table td.user-query-cell {
-        font-weight: 600;
-        color: #315593;
-        font-size: 1.05em;
-        letter-spacing: .004em;
-    }
-    .interactive-table .rel-badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 1em;
-        padding: 0.22em 0.9em 0.20em 0.7em;
-        font-weight: 600;
-        font-size: 0.98em;
-        letter-spacing: 0.01em;
-        margin-left: 0.15em;
-        margin-right: 0.16em;
-        margin-top: -0.10em;
-        user-select: none;
-        box-shadow: 0 2px 8px #cce6ff17;
-    }
-    .rel-badge.relevant {
-        background: linear-gradient(90deg,#4dcc99 70%,#a6f7c7 100%);
-        color: #146444;
-        border: 1.3px solid #b7eadd;
-    }
-    .rel-badge.quite {
-        background: linear-gradient(90deg,#a0d4ee 70%,#c1eefc 100%);
-        color: #17658d;
-        border: 1.3px solid #b7deff;
-    }
-    .rel-badge.less {
-        background: linear-gradient(90deg,#ffe780 70%,#f6f3b0 100%);
-        color: #88770f;
-        border: 1.3px solid #efe6bd;
-    }
-    .rel-badge.bad {
-        background: linear-gradient(90deg,#ffb6ad 70%,#ffe1e0 100%);
-        color: #bc2929;
-        border: 1.3px solid #f7cfd9;
-    }
-    .rel-badge .check-emoji {
-        margin-right: 0.48em;
-        font-size: 1.13em;
-        filter: drop-shadow(0 0.14em 2px #d0edff66);
-    }
-    /* ...end of rest... */
-    .agent-config-container {
-        display: none;
-    }
-    .show-config .agent-config-container {
+      }
+      .table-title {
         display: flex;
-    }
-</style>
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding-bottom: 0.35em;
+        box-sizing: border-box;
+      }
+      /* ADDED: Give each table stack a gap below */
+      .table-stack-single {
+        margin-bottom: 2.4em;
+      }
+      .add-row-modal {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        position: fixed;
+        z-index: 5000;
+        top: 38vh;
+        left: 0;
+        right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 400px;
+        box-sizing: border-box;
+        background: #fafcfe;
+        border: 1.15px solid #b4e3fc;
+        border-radius: 1.1em;
+        box-shadow: 0 6px 23px #bae1fc38, 0 2.5px 7px #bae1fc16;
+        padding: 2em 2em 1.6em 2em;
+        color: #23456f;
+        font-size: 1.05em;
+        min-width: 250px;
+        outline: none;
+      }
+      .add-row-backdrop {
+        position: fixed;
+        top:0; left:0; right:0; bottom:0;
+        background: rgba(104,175,226,0.10);
+        z-index: 4000;
+      }
+      .add-row-modal-label {
+        font-weight: 600;
+        color: #23548f;
+        margin-bottom: 0.35em;
+        font-size: 1.13em;
+      }
+      .add-row-modal-input {
+        padding: 0.7em 1em;
+        border-radius: 0.7em;
+        border: 1.1px solid #bae1fc;
+        background: #f8fbfd;
+        color: #315593;
+        font-weight: 500;
+        font-size: 1.12em;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 1.1em;
+      }
+      .add-row-modal-btns {
+        display: flex;
+        gap: 1em;
+        justify-content: flex-end;
+        margin-top: 0.1em;
+      }
+      .add-row-modal-btn {
+        padding: 0.48em 1.2em;
+        font-size: 1.02em;
+        border-radius: 0.7em;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(90deg, #2798ef 60%, #6ebbe8 100%);
+        color: #fff;
+        transition: background 0.12s;
+      }
+      .add-row-modal-btn.cancel {
+        background: linear-gradient(90deg, #ffb9b9 60%, #ffc8e2 100%);
+        color: #23456f;
+      }
+      @media (max-width: 600px) {
+        .add-row-modal {
+          max-width: 94vw;
+          padding: 1em 0.6em 1.1em 0.6em;
+        }
+      }
+    </style>
+</head>
+
 <div class="app-root-flex">
   <nav class="sidebar-modern" id="app-sidebar">
     <div class="sidebar-brand">
@@ -426,98 +129,131 @@
     </div>
     <!-- Modern Table Display (visible by default) -->
     <div class="interactive-table-container" id="interactive-table-container">
-      <table class="interactive-table" cellspacing="0" id="main-table">
-          <thead>
-              <!-- Will be filled by JS -->
-          </thead>
-          <tbody>
-              <!-- Will be filled by JS -->
-          </tbody>
-      </table>
+      <!-- Button Container: Centered horizontally with both buttons -->
+      <div class="btn-container-centered" id="add-test-set-btn-container">
+        <button class="add-test-set-btn" id="add-test-set-btn" type="button">Add Test Set</button>
+        <label class="upload-test-set-label" id="upload-test-set-label">
+          Upload Test Set
+          <input type="file" id="upload-test-set-input" multiple>
+        </label>
+      </div>
+      <!-- Add Test Set form display below button, hidden by default -->
+      <div class="add-test-set-form-wrap" id="add-test-set-form-wrap">
+        <form class="add-test-set-form" id="add-test-set-form" autocomplete="off">
+          <!-- Test Set Name label and input -->
+          <label class="add-test-set-form-label-main" for="add-ts-name">Test Set Name</label>
+          <input
+              type="text"
+              id="add-ts-name"
+              name="test_set_name"
+              placeholder="Enter test set name"
+              style="margin-bottom:1.05em; font-size: 1.12em; padding: 0.7em 1em; border-radius:0.7em; border:1.1px solid #bae1fc; background:#f8fbfd; color:#315593; font-weight: 500; width: 100%; box-sizing: border-box;"
+              autocomplete="off"
+          >
+          <label class="add-test-set-form-label-main" for="add-ts-columns">Columns</label>
+          <div class="add-test-set-form-checkbox-group" id="add-ts-columns">
+            <label class="add-test-set-form-checkbox-label">
+              <input type="checkbox" name="columns" value="User Query" checked> User Query
+            </label>
+            <label class="add-test-set-form-checkbox-label">
+              <input type="checkbox" name="columns" value="Ground Truth" checked> Ground Truth
+            </label>
+          </div>
+          <!-- Insert Metrics label and combo here -->
+          <label class="add-test-set-form-metrics-label" for="add-test-set-form-metrics-select">Metrics</label>
+          <select class="add-test-set-form-metrics-select" id="add-test-set-form-metrics-select" name="metrics">
+            <option value="" selected disabled></option>
+            <option value="ai_as_judge">AI as judge</option>
+          </select>
+          <!-- AI as judge custom fields will appear here -->
+          <div id="ai-as-judge-fields-container" style="display: none;"></div>
+          <div class="add-test-set-form-btns">
+            <button type="button" class="build-btn" id="add-test-set-build-btn">Build</button>
+            <button type="button" class="cancel-btn" id="add-test-set-cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <!-- Table wrapper area for stacking tables -->
+      <div id="multi-table-stack"></div>
     </div>
     <div class="right-pane-detail" id="right-pane-detail"></div>
   </div>
 </div>
 <script>
 (function(){
-    // Data for Tests table
-    const ROWS = [
-        {
-            "User Query": "What is the capital of France?",
-            "Ground Truth": "Paris",
-            "Generated Output": "Paris",
-            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
-        },
-        {
-            "User Query": "Summarize the theory of evolution.",
-            "Ground Truth": "Evolution describes the process by which species change over time through natural selection.",
-            "Generated Output": "Species adapt and change gradually over generations due to natural selection.",
-            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
-        },
-        {
-            "User Query": "Translate \"Hello\" to Spanish.",
-            "Ground Truth": "Hola",
-            "Generated Output": "Hola",
-            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
-        },
-        {
-            "User Query": "Who wrote '1984'?",
-            "Ground Truth": "George Orwell",
-            "Generated Output": "George Orwell",
-            "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
-        },
-        {
-            "User Query": "Explain Python list comprehensions.",
-            "Ground Truth": "List comprehensions provide a concise way to create lists using a single line of code.",
-            "Generated Output": "A Python list comprehension is a compact way to create lists from iterables.",
-            "Relevance": {label: "Quite Relevant", badge: "quite", emoji: "✅"}
-        },
-        {
-            "User Query": "What is the boiling point of water?",
-            "Ground Truth": "100°C at standard atmospheric pressure.",
-            "Generated Output": "100 degrees Celsius.",
-            "Relevance": {label: "Quite Relevant", badge: "quite", emoji: "✔️"}
-        },
-        {
-            "User Query": "Name a city in Germany.",
-            "Ground Truth": "Berlin",
-            "Generated Output": "Munich",
-            "Relevance": {label: "Less Relevant", badge: "less", emoji: "🟡"}
-        },
-        {
-            "User Query": "What is photosynthesis?",
-            "Ground Truth": "It is the process by which green plants convert sunlight, water, and CO2 into glucose and oxygen.",
-            "Generated Output": "Plants need sunlight to live.",
-            "Relevance": {label: "Less Relevant", badge: "less", emoji: "🟡"}
-        },
-        {
-            "User Query": "What is 2 + 2?",
-            "Ground Truth": "4",
-            "Generated Output": "5",
-            "Relevance": {label: "Bad Relevance", badge: "bad", emoji: "❌"}
-        },
-        {
-            "User Query": "Define gravity.",
-            "Ground Truth": "A natural force causing objects to be attracted toward the center of the Earth or other physical bodies.",
-            "Generated Output": "It is related to levitation.",
-            "Relevance": {label: "Bad Relevance", badge: "bad", emoji: "❌"}
-        }
+
+
+      document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            document.querySelectorAll('.sidebar-nav-link').forEach(x => x.classList.remove('active'));
+            link.classList.add('active');
+            e.preventDefault();
+            let titleNode = Array.from(link.childNodes).find(node =>
+                node.nodeType === 3 && node.textContent.trim()
+            );
+            let sectionTitle = titleNode ? titleNode.textContent.trim() : link.textContent.trim();
+            console.log("zebi zebi")
+            console.log(sectionTitle);
+            if (sectionTitle == "Tests") {
+                window.location.href = "/tests" ; 
+            } else if (sectionTitle == "Agent Configuration") {
+                window.location.href = "/agent_config"
+            }
+        })
+    });
+    // DATA MODEL: store multiple tables!
+    let TABLES = [
+      {
+        name: "Test soviet",
+        columns: [
+            { key: "User Query", label: "User Query", className: "user-query-cell", widthWeight: 1 },
+            { key: "Ground Truth", label: "Ground Truth", widthWeight: 2 },
+            { key: "Generated Output", label: "Generated Output", widthWeight: 1 },
+            { key: "Relevance", label: "Relevance", widthWeight: 1 }
+        ],
+        rows: [
+            {
+                "User Query": "What is the capital of France?",
+                "Ground Truth": "Paris",
+                "Generated Output": "Paris",
+                "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+            },
+            {
+                "User Query": "Summarize the theory of evolution.",
+                "Ground Truth": "Evolution describes the process by which species change over time through natural selection.",
+                "Generated Output": "Species adapt and change gradually over generations due to natural selection.",
+                "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+            },
+            {
+                "User Query": "Translate \"Hello\" to Spanish.",
+                "Ground Truth": "Hola",
+                "Generated Output": "Hola",
+                "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+            },
+            {
+                "User Query": "Who wrote '1984'?",
+                "Ground Truth": "George Orwell",
+                "Generated Output": "George Orwell",
+                "Relevance": {label: "Very Relevant", badge: "relevant", emoji: "✅"}
+            },
+            {
+                "User Query": "Explain Python list comprehensions.",
+                "Ground Truth": "List comprehensions provide a concise way to create lists using a single line of code.",
+                "Generated Output": "A Python list comprehension is a compact way to create lists from iterables.",
+                "Relevance": {label: "Quite Relevant", badge: "quite", emoji: "✅"}
+            }
+        ]
+      }
     ];
 
-    // Tests Table Columns
-    const COLUMNS = [
-        { key: "User Query", label: "User Query", className: "user-query-cell", widthWeight: 1 },
-        { key: "Ground Truth", label: "Ground Truth", widthWeight: 2 },
-        { key: "Generated Output", label: "Generated Output", widthWeight: 1 },
-        { key: "Relevance", label: "Relevance", widthWeight: 1 }
-    ];
-
+    // helpers
     function setColumnWidths(table, columns) {
-        const totalWeight = columns.reduce((s, col) => s + (col.widthWeight || 1), 0);
+        const allCols = [...columns, { key: "__run_btn__", label: "", widthWeight: 0.4 }];
+        const totalWeight = allCols.reduce((s, col) => s + (col.widthWeight || 1), 0);
         let colgroup = table.querySelector('colgroup');
         if (colgroup) colgroup.remove();
         colgroup = document.createElement('colgroup');
-        columns.forEach((col, idx) => {
+        allCols.forEach((col, idx) => {
             const colEl = document.createElement('col');
             colEl.className = 'col-' + (idx+1);
             const perc = ((col.widthWeight||1) / totalWeight * 100).toFixed(3);
@@ -527,11 +263,107 @@
         table.insertBefore(colgroup, table.firstChild);
     }
 
-    function renderTable(table, columns, dataRows) {
+    // Always only clear all table DOM nodes in the multi-table-stack container
+    function clearAllTablesFromStack() {
+        let tables_container = document.getElementById("multi-table-stack");
+        if (tables_container) tables_container.innerHTML = '';
+    }
+
+    // Render ALL tables in TABLES array
+    function renderAllTables() {
+        clearAllTablesFromStack();
+        let stack = document.getElementById("multi-table-stack");
+        // Sort tables for consistent order (most recent last)
+        TABLES.forEach(function(tableObj, i) {
+            renderTable(tableObj.columns, tableObj.rows, tableObj.name, stack, i);
+        });
+    }
+
+    // Render one table WITHIN the stack
+    function renderTable(columns, dataRows, table_name, container, tableIndex) {
+        container = container || document.getElementById("multi-table-stack");
+
+        // Table Title
+        const tableTitle = document.createElement("div");
+        tableTitle.className = "table-title";
+
+        // Title text/emoji
+        const innerSpan = document.createElement("span");
+        innerSpan.style.display = "flex";
+        innerSpan.style.alignItems = "center";
+        innerSpan.style.gap = "0.45em";
+
+        const emojiSpan = document.createElement("span");
+        emojiSpan.className = "table-title-emoji";
+        emojiSpan.textContent = "📝";
+        innerSpan.appendChild(emojiSpan);
+        innerSpan.appendChild(document.createTextNode(table_name));
+
+        // --- Button controls ---
+        const controlsDiv = document.createElement("div");
+        controlsDiv.className = "table-title-controls";
+
+        // Run button
+        const button = document.createElement("button");
+        button.className = "run-test-btn";
+        button.type = "button";
+        button.textContent = "Run";
+        button.onclick = function() {
+            // Print {table_name: ..., tests: [...] }
+            const tableObj = TABLES[tableIndex];
+            const result = tableObj.rows.map(function(row, idx) {
+                let obj = { user_query: row["User Query"], num_row: idx };
+                if ('Ground Truth' in row) {
+                    obj.ground_truth = row["Ground Truth"];
+                }
+                return obj;
+            });
+            const output = {
+                table_name: tableObj.name,
+                tests: result
+            };
+            //add the fetch here 
+            fetch ("http://localhost:3030/run_tests" , {
+                    method : 'POST' , 
+                    headers : {
+                        'Content-Type': 'application/json' , 
+                    }, 
+                    body : JSON.stringify(output)
+                }).then(response => response.json())
+                .then(result => console.log(result))
+                .catch(error => console.error('Error:', error));
+
+            console.log(output);
+        };
+
+        // Add Row button
+        const addRowButton = document.createElement("button");
+        addRowButton.type = "button";
+        addRowButton.className = "run-test-btn add-row-btn";
+        addRowButton.style.marginLeft = "0";
+        addRowButton.textContent = "Add Row";
+        addRowButton.onclick = function() {
+            if (document.getElementById("add-row-modal")) return;
+            showAddRowModal(tableIndex);
+        };
+
+        controlsDiv.appendChild(button);
+        controlsDiv.appendChild(addRowButton);
+        tableTitle.appendChild(innerSpan);
+        tableTitle.appendChild(controlsDiv);
+
+        // Main table
+        let table = document.createElement("table");
+        table.className = "interactive-table";
+        table.cellSpacing = "0";
+        let thead = document.createElement("thead");
+        let tbody = document.createElement("tbody");
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
         setColumnWidths(table, columns);
 
-        // Header
-        const thead = table.querySelector('thead');
+        // Table header
         thead.innerHTML = '';
         const trHead = document.createElement('tr');
         columns.forEach((col, idx) => {
@@ -540,12 +372,16 @@
             th.classList.add('col-' + (idx+1));
             trHead.appendChild(th);
         });
+        // Run column th
+        const thRun = document.createElement('th');
+        thRun.textContent = 'Run';
+        thRun.classList.add('col-' + (columns.length+1));
+        trHead.appendChild(thRun);
         thead.appendChild(trHead);
 
-        // Body
-        const tbody = table.querySelector('tbody');
+        // Table body
         tbody.innerHTML = '';
-        dataRows.forEach(row => {
+        dataRows.forEach((row, rowIdx) => {
             const tr = document.createElement('tr');
             columns.forEach((col, idx) => {
                 const td = document.createElement('td');
@@ -553,10 +389,8 @@
                 if (col.key === "User Query") {
                     td.classList.add('user-query-cell');
                 }
-                if (col.key !== "Relevance") {
-                    td.textContent = row[col.key];
-                } else {
-                    // Badge
+                // For each cell in this row: Show the cell value, or blank if missing/null/undefined.
+                if (col.key === "Relevance" && row["Relevance"]) {
                     const span = document.createElement('span');
                     span.className = `rel-badge ${row.Relevance.badge}`;
                     const checkEmoji = document.createElement('span');
@@ -565,291 +399,475 @@
                     span.appendChild(checkEmoji);
                     span.appendChild(document.createTextNode(' ' + row.Relevance.label));
                     td.appendChild(span);
+                } else {
+                    td.textContent = row[col.key] != null ? row[col.key] : '';
                 }
                 tr.appendChild(td);
             });
+            // Row Run button
+            const tdRun = document.createElement('td');
+            tdRun.classList.add('col-' + (columns.length+1));
+            tdRun.style.textAlign = "center";
+            tdRun.style.verticalAlign = "middle";
+            tdRun.style.cursor = "default";
+            const btn = document.createElement('button');
+            btn.type = "button";
+            btn.className = "row-run-btn";
+            btn.setAttribute('aria-label', 'Run this test');
+            btn.innerHTML = 'Run';
+            btn.onclick = function(e){
+                e.stopPropagation();
+                // Populate the dictionary as requested: user_query, row_num, (optionally) ground_truth, table_name
+                let test_2_run = {
+                  user_query: row["User Query"],
+                  row_num: rowIdx,
+                  table_name: table_name
+                };
+                if ("Ground Truth" in row && row["Ground Truth"] !== undefined) {
+                  test_2_run.ground_truth = row["Ground Truth"];
+                }
+                fetch ("http://localhost:3030/run_tests" , {
+                    method : 'POST' , 
+                    headers : {
+                        'Content-Type': 'application/json' , 
+                    }, 
+                    body : JSON.stringify({
+                        "tests" : [test_2_run],
+                    })
+                }).then(response => response.json())
+                .then(result => console.log(result))
+                .catch(error => console.error('Error:', error));
+                console.log(test_2_run);
+            };
+            tdRun.appendChild(btn);
+            tr.appendChild(tdRun);
+
             tbody.appendChild(tr);
         });
+
+        // Compose
+        let wrapper = document.createElement('div');
+        wrapper.className = "table-stack-single";
+        wrapper.appendChild(tableTitle);
+        wrapper.appendChild(table);
+
+        // Actually render into the stack
+        container.appendChild(wrapper);
     }
 
-    // Initial State: Tests selected, show table
-    const table = document.getElementById('main-table');
-    const layout = document.getElementById('table-layout-flex');
-    const rightPane = document.getElementById('right-pane-detail');
-    const tableContainer = document.getElementById('interactive-table-container');
-    let tbody = table.getElementsByTagName('tbody')[0];
-    renderTable(table, COLUMNS, ROWS);
+    // Show custom "Add Row" modal (for specified table!)
+    function showAddRowModal(tableIndex) {
+        // Identify the target table and its columns
+        const tableObj = TABLES[tableIndex];
+        const tableColumns = tableObj.columns.map(col => col.key);
 
-    let rows = Array.from(tbody.children);
+        // Modal logic -- dynamic fields
+        const backdropDiv = document.createElement('div');
+        backdropDiv.className = 'add-row-backdrop';
+        backdropDiv.onclick = function(){ closeAddRowModal(); };
+        document.body.appendChild(backdropDiv);
 
-    let selectedCellInfo = {row: null, col: null};
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'add-row-modal';
+        modalDiv.id = 'add-row-modal';
+        modalDiv.tabIndex = -1;
 
-    function clearCellSelection() {
-        const cells = table.querySelectorAll('td.selected-cell');
-        Array.from(cells).forEach(td => td.classList.remove('selected-cell'));
-        selectedCellInfo.row = null;
-        selectedCellInfo.col = null;
-    }
-    function selectCell(trIdx, tdIdx) {
-        clearCellSelection();
-        rows = Array.from(tbody.children);
-        if (
-          typeof trIdx === "number"
-          && typeof tdIdx === "number"
-          && rows[trIdx]
-          && rows[trIdx].children[tdIdx]
-        ) {
-          rows[trIdx].children[tdIdx].classList.add('selected-cell');
-          selectedCellInfo.row = trIdx;
-          selectedCellInfo.col = tdIdx;
-        }
-    }
+        modalDiv.onkeydown = function(e) {
+          if (e.key === "Escape") closeAddRowModal();
+        };
 
-    function reAttachCellEvents() {
-        rows = Array.from(tbody.children);
-        rows.forEach((tr, trIdx) => {
-            tr.querySelectorAll('td').forEach((td, tdIdx) => {
-                td.onclick = function(e){
-                    selectCell(trIdx, tdIdx);
-                    showCellDetail(trIdx, tdIdx);
-                    e.stopPropagation();
-                }
-            });
-        });
-    }
+        // We'll dynamically add only "User Query" and "Ground Truth" if present
+        let userQinput = null, gtInput = null;
+        // Button controls
+        const btnWrap = document.createElement('div');
+        btnWrap.className = 'add-row-modal-btns';
 
-    // Helper: Escape HTML for right pane
-    function esc(txt) {
-        if (typeof txt !== "string") return txt;
-        return txt.replace(/[<>&"'`]/g, function(c) {
-            return ({
-                "<":"&lt;",
-                ">":"&gt;",
-                "&":"&amp;",
-                "\"":"&quot;",
-                "'":"&#39;",
-                "`":"&#96;"
-            })[c];
-        });
-    }
+        // Cancel
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'add-row-modal-btn cancel';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = closeAddRowModal;
 
-    // Show row detail (modern cart on right - show all cells for one row)
-    function showCellDetail(trIdx, tdIdx) {
-        if (
-            typeof trIdx !== "number"
-            || !ROWS[trIdx]
-        ) return;
-        const row = ROWS[trIdx];
+        // Add button
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'add-row-modal-btn';
+        addBtn.textContent = 'Add';
 
-        // Mark cell as selected as before
-        clearCellSelection();
-        if (
-            typeof trIdx === "number"
-            && typeof tdIdx === "number"
-            && rows[trIdx]
-            && rows[trIdx].children[tdIdx]
-        ) {
-            rows[trIdx].children[tdIdx].classList.add('selected-cell');
-            selectedCellInfo.row = trIdx;
-            selectedCellInfo.col = tdIdx;
+        // Only include the User Query input if present
+        if (tableColumns.includes("User Query")) {
+          const userQlabel = document.createElement('label');
+          userQlabel.className = 'add-row-modal-label';
+          userQlabel.htmlFor = 'add-row-user-query';
+          userQlabel.textContent = 'User Query';
+          userQinput = document.createElement('input');
+          userQinput.className = 'add-row-modal-input';
+          userQinput.type = 'text';
+          userQinput.id = 'add-row-user-query';
+          userQinput.name = 'user_query';
+          userQinput.placeholder = 'Enter user query';
+          userQinput.required = true;
+          modalDiv.appendChild(userQlabel);
+          modalDiv.appendChild(userQinput);
         }
 
-        // Modern right cart: Show all cells for the row, with editing available on User Query and Ground Truth
-        let sections = '';
-        COLUMNS.forEach((col, idx) => {
-            let isEditable = (col.key === "User Query" || col.key === "Ground Truth");
-            let label = esc(col.label || col.key);
-            let displayValue = '';
-            if (col.key === "Relevance") {
-                displayValue = `<span class="rel-badge ${row.Relevance.badge}">
-                        <span class="check-emoji">${row.Relevance.emoji}</span> ${row.Relevance.label}
-                    </span>`;
-            } else {
-                displayValue = esc(row[col.key]);
+        // Only include the Ground Truth input if present
+        if (tableColumns.includes("Ground Truth")) {
+          const gtLabel = document.createElement('label');
+          gtLabel.className = 'add-row-modal-label';
+          gtLabel.htmlFor = 'add-row-ground-truth';
+          gtLabel.textContent = 'Ground Truth';
+          gtInput = document.createElement('input');
+          gtInput.className = 'add-row-modal-input';
+          gtInput.type = 'text';
+          gtInput.id = 'add-row-ground-truth';
+          gtInput.name = 'ground_truth';
+          gtInput.placeholder = 'Enter ground truth';
+          gtInput.required = true;
+          modalDiv.appendChild(gtLabel);
+          modalDiv.appendChild(gtInput);
+        }
+
+        // Add button - logic changed: Only require whichever fields are present
+        addBtn.onclick = function() {
+            if ((userQinput && !userQinput.value.trim()) ||
+                (gtInput && !gtInput.value.trim())) {
+                addBtn.textContent = "Fill all fields";
+                addBtn.style.background = "linear-gradient(90deg,#ffbbaa 65%,#ff7474 100%)";
+                setTimeout(()=>{
+                  addBtn.textContent = "Add";
+                  addBtn.style.background = "";
+                }, 900);
+                return;
             }
+            let newRow = {};
+            // Assign values ONLY for the inputs that were shown
+            if (userQinput) newRow["User Query"] = userQinput.value.trim();
+            if (gtInput)    newRow["Ground Truth"] = gtInput.value.trim();
+            // All other slots (including 'Generated Output', metrics, etc) are undefined/empty
+            tableObj.rows.push(newRow);
+            closeAddRowModal();
+            renderAllTables();
+        };
 
-            sections += `
-                <div class="detail-section" data-section-idx="${idx}" style="margin-bottom:1.25em;">
-                    <strong>${label}:</strong>
-                    ${
-                        isEditable
-                        ? `<textarea class="edit-textarea" id="edit-cell-input-${col.key.replace(/\s+/g, '')}" name="cellInput_${col.key.replace(/\s+/g, '')}" autocomplete="off" placeholder="Edit ${label}..." rows="4">${displayValue}</textarea>`
-                        : `<div style="margin-top:0.7em;">${displayValue}</div>`
-                    }
-                </div>
-            `;
-        });
+        btnWrap.appendChild(cancelBtn);
+        btnWrap.appendChild(addBtn);
 
-        // Save button for the entire row, editing User Query and/or Ground Truth
-        rightPane.innerHTML = `
-            <div class="detail-title">
-                <span style="margin-right:0.4em; font-size:1.15em;">🔍</span>
-                Row Details
-                <button type="button" class="detail-close-btn" id="detail-close-btn" title="Close">&times;</button>
-            </div>
-            <form id="detail-edit-form">
-                ${sections}
-                <div class="detail-section" style="background:none;box-shadow:none;text-align:right;margin-bottom:0;border:none;padding:0 0 0.2em 0;">
-                    <button type="submit" class="edit-save-btn">Save Changes</button>
-                </div>
-            </form>
-        `;
+        modalDiv.appendChild(btnWrap);
 
-        // Add close btn
-        const closeBtn = document.getElementById('detail-close-btn');
-        if (closeBtn) {
-            closeBtn.onclick = function(ev) {
-                ev.preventDefault();
-                clearCellSelection();
-                hideRightPaneDetail();
-            };
+        document.body.appendChild(modalDiv);
+        setTimeout(()=>{ 
+            if (userQinput) userQinput.focus();
+            else if (gtInput) gtInput.focus();
+        }, 30);
+
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeAddRowModal() {
+        let m = document.getElementById('add-row-modal');
+        if (m) m.remove();
+        let b = document.querySelector('.add-row-backdrop');
+        if (b) b.remove();
+        document.body.style.overflow = "";
+    }
+
+    // Initial State: show all tables
+    renderAllTables();
+
+    // --- Add Test Set Button logic ---
+    function resetAddTestSetFormToInitial() {
+        var f = document.getElementById('add-test-set-form');
+        if (f) {
+            f.reset();
         }
+        var userQCb = document.querySelector('#add-ts-columns input[type="checkbox"][value="User Query"]');
+        var gtCb = document.querySelector('#add-ts-columns input[type="checkbox"][value="Ground Truth"]');
+        if (userQCb) userQCb.checked = true;
+        if (gtCb) gtCb.checked = true;
+        var metricsSel = document.getElementById("add-test-set-form-metrics-select");
+        if (metricsSel) metricsSel.selectedIndex = 0;
+        var aiFields = document.getElementById('ai-as-judge-fields-container');
+        if (aiFields) aiFields.innerHTML = '';
+        if (aiFields) aiFields.style.display = 'none';
+    }
 
-        // Auto-resize and form submission for multiple editable fields
-        const form = document.getElementById('detail-edit-form');
-        if (form) {
-            COLUMNS.forEach((col) => {
-                if (col.key === "User Query" || col.key === "Ground Truth") {
-                    const textarea = form.querySelector(`#edit-cell-input-${col.key.replace(/\s+/g, '')}`);
-                    if (textarea) {
-                        textarea.oninput = null;
-                        textarea.style.overflowY = 'auto';
-                        textarea.style.height = 'auto';
-                        const autoResize = function() {
-                            textarea.style.height = 'auto';
-                            const minHeight = parseInt(window.getComputedStyle(textarea).minHeight || 0) || 0;
-                            textarea.style.height = Math.max(textarea.scrollHeight + 2, minHeight) + 'px';
-                        };
-                        textarea.addEventListener('input', autoResize);
-                        setTimeout(autoResize, 15);
-                    }
+    window.AddTestSet = function() {
+        resetAddTestSetFormToInitial();
+        var formWrap = document.getElementById('add-test-set-form-wrap');
+        if (!formWrap.classList.contains('active')) {
+            formWrap.classList.add('active');
+        }
+    };
+
+    var addTestSetBtn = document.getElementById('add-test-set-btn');
+    if (addTestSetBtn) {
+        addTestSetBtn.onclick = function() {
+            window.AddTestSet();
+        }
+    }
+
+    var addTestSetCancelBtn = document.getElementById('add-test-set-cancel-btn');
+    if (addTestSetCancelBtn) {
+        addTestSetCancelBtn.onclick = function() {
+            var formWrap = document.getElementById('add-test-set-form-wrap');
+            formWrap.classList.remove('active');
+            const aiFields = document.getElementById('ai-as-judge-fields-container');
+            if (aiFields) aiFields.innerHTML = '';
+            if (aiFields) aiFields.style.display = 'none';
+            resetAddTestSetFormToInitial();
+        }
+    }
+    // Add Test Set Build button
+    var addTestSetBuildBtn = document.getElementById('add-test-set-build-btn');
+    if (addTestSetBuildBtn) {
+        addTestSetBuildBtn.onclick = function() {
+            var colInputs = document.querySelectorAll('#add-ts-columns input[type="checkbox"]:checked');
+            var cols = [];
+            colInputs.forEach(function(input){ cols.push(input.value); });
+            // --- BEGIN PATCH: Use checked columns, then always insert 'Generated Output', then metric names ---
+            let buildColumns = [];
+
+            // Add each checked column as a column (keep order)
+            cols.forEach(function(col) {
+                if (col === "User Query") {
+                    buildColumns.push({ key: "User Query", label: "User Query", className: "user-query-cell", widthWeight: 1 });
+                } else if (col === "Ground Truth") {
+                    buildColumns.push({ key: "Ground Truth", label: "Ground Truth", widthWeight: 2 });
+                } else {
+                    buildColumns.push({ key: col, label: col, widthWeight: 1 });
                 }
             });
-            form.onsubmit = function(ev){
-                ev.preventDefault();
-                let updated = false;
-                COLUMNS.forEach((col, idx) => {
-                    if (col.key === "User Query" || col.key === "Ground Truth") {
-                        const textarea = form.querySelector(`#edit-cell-input-${col.key.replace(/\s+/g, '')}`);
-                        if (textarea && row[col.key] !== textarea.value) {
-                            row[col.key] = textarea.value;
-                            updated = true;
+
+            // Now always add Generated Output column after checkboxes, before metrics
+            buildColumns.push({ key: "Generated Output", label: "Generated Output", widthWeight: 1 });
+
+            // Get AI judge metric names from display list, and add them as columns
+            var aiJudgeLists = document.querySelectorAll('.ai-judge-display-list');
+            let ai_oj = [];
+            let metricNames = []; // For metrics columns
+
+            if (aiJudgeLists.length) {
+                aiJudgeLists.forEach(function(displayList){
+                    var judges = displayList.querySelectorAll('.ai-judge-collapsible-toggle');
+                    judges.forEach(function(judgeBtn){
+                        var nameSpan = judgeBtn.querySelector('span:last-child');
+                        var name = "";
+                        if (nameSpan) {
+                            var inHtml = nameSpan.innerHTML.match(/<span[^>]*>(.*?)<\/span>/);
+                            name = inHtml ? inHtml[1].trim() : nameSpan.textContent.replace(/^Name:\s*/i,'').trim();
                         }
-                    }
+                        var prompt = "";
+                        var wrapper = judgeBtn.parentNode;
+                        var promptDiv = wrapper.querySelector('.ai-judge-collapsible-content');
+                        if (promptDiv) {
+                            var pre = promptDiv.querySelector('pre');
+                            if (pre) prompt = pre.textContent.trim();
+                        }
+                        ai_oj.push({name: name, prompt: prompt});
+                        metricNames.push(name);
+                    });
                 });
-                if (updated) {
-                    renderTable(table, COLUMNS, ROWS);
-                    rows = Array.from(tbody.children);
-                    reAttachCellEvents();
-                    // Select first editable cell in row after update for focus
-                    let editableColIdx = COLUMNS.findIndex(c => c.key === "User Query");
-                    selectCell(trIdx, editableColIdx >= 0 ? editableColIdx : 0);
-                }
-                // Refresh right pane regardless to update content
-                showCellDetail(trIdx, tdIdx);
-            };
-        }
+            }
 
-        // Cart effect: move table and show right pane with smooth transition
-        layout.classList.add('detail-active');
-        setTimeout(() => rightPane.classList.add('active'), 20);
-    }
-
-    function hideRightPaneDetail() {
-        rightPane.classList.remove('active');
-        layout.classList.remove('detail-active');
-        setTimeout(() => {}, 370);
-    }
-
-    // Attach cell click events on first load
-    function attachCellEventsOnce() {
-        rows.forEach((tr, trIdx) => {
-            tr.querySelectorAll('td').forEach((td, tdIdx) => {
-                td.onclick = function(e){
-                    // --- Begin fix ---
-                    // Always re-add show-table and remove show-config for table visibility/interaction
-                    layout.classList.remove('show-config');
-                    if (!layout.classList.contains('show-table')) {
-                        layout.classList.add('show-table');
-                    }
-                    // --- End fix ---
-                    selectCell(trIdx, tdIdx);
-                    showCellDetail(trIdx, tdIdx);
-                    e.stopPropagation();
-                }
+            // Add all metric names as columns if any
+            metricNames.forEach(function(metricName){
+                // use key/label=metricName
+                buildColumns.push({ key: metricName, label: metricName, widthWeight: 1 });
             });
+
+            var resultObj = {
+                Cols: cols,
+                metrics: {
+                    AI_as_a_judge: ai_oj
+                }
+            };
+            let test_set_name = document.getElementById("add-ts-name").value.trim();
+
+            // Add the new table to our TABLES model, with empty rows.
+            TABLES.push({
+              name: test_set_name,
+              columns: buildColumns,
+              rows: []
+            });
+
+            renderAllTables();
+
+            // Hide form and reset
+            var formWrap = document.getElementById('add-test-set-form-wrap');
+            formWrap.classList.remove('active');
+            const aiFields = document.getElementById('ai-as-judge-fields-container');
+            if (aiFields) aiFields.innerHTML = '';
+            if (aiFields) aiFields.style.display = 'none';
+            resetAddTestSetFormToInitial();
+        }
+    }
+
+    // --- Upload Test Set Input logic ---
+    window.UploadTestSet = function(files) {
+        if (files && files.length > 0) {
+            console.log('User selected files for upload:');
+            for (let i = 0; i < files.length; i++) {
+                console.log(`File ${i + 1}:`, files[i].name);
+            }
+        }
+    };
+
+    var uploadTestSetInput = document.getElementById('upload-test-set-input');
+    if (uploadTestSetInput) {
+        uploadTestSetInput.addEventListener('change', function(e) {
+            window.UploadTestSet(uploadTestSetInput.files);
+            uploadTestSetInput.value = '';
         });
     }
-    attachCellEventsOnce();
 
-    // Hide detail when clicking outside
-    rightPane.addEventListener('click', function(e){
-        e.stopPropagation();
-    });
-    document.body.addEventListener('mousedown', function(evt){
-        const isInSidebar = document.getElementById('app-sidebar').contains(evt.target);
-        const isInTable = tableContainer.contains(evt.target);
-        const isInPane = rightPane.contains(evt.target);
-        if (!isInSidebar && !isInTable && !isInPane && rightPane.classList.contains('active')) {
-            clearCellSelection();
-            hideRightPaneDetail();
-        }
-    });
+    // ----------- LOGIC FOR AI AS JUDGE FIELDS IN FORM ---------------
+    var aiFieldsContainer = document.getElementById("ai-as-judge-fields-container");
+    var metricsSelect = document.getElementById("add-test-set-form-metrics-select");
 
-    // --- Sidebar navigation for view switch ---
-    const navLinks = document.querySelectorAll('.sidebar-nav-link');
+    function createAiJudgeFields() {
+        if (!aiFieldsContainer) return;
+        aiFieldsContainer.innerHTML = `
+            <div class="add-ai-judge-fields" id="add-ai-judge-fields-main">
+              <div>
+                <label for="ai-judge-name">Name</label>
+                <input type="text" id="ai-judge-name" name="ai_judge_name" placeholder="e.g. Custom Judge Name" autocomplete="off">
+              </div>
+              <div>
+                <label for="ai-judge-prompt">Prompt</label>
+                <textarea id="ai-judge-prompt" name="ai_judge_prompt" placeholder="Prompt for AI as judge..." rows="4"></textarea>
+              </div>
+              <button type="button" class="add-ai-judge-btn" id="add-ai-judge-btn">Add</button>
+            </div>
+        `;
+        aiFieldsContainer.style.display = '';
 
-    // Function to log section name when clicking a sidebar link
-    function logSidebarSectionName(node) {
-        // Try to get the section name as visible in the link text
-        // Use first text node after emoji, or fallback to .textContent trim
-        let text = "";
-        // Exclude emoji span - get all non-empty text from the node
-        node.childNodes.forEach(child => {
-            if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
-                text += child.textContent.trim();
+        setTimeout(function() {
+            var addBtn = document.getElementById("add-ai-judge-btn");
+            if (addBtn) {
+                addBtn.onclick = function(e) {
+                    e.preventDefault();
+                    var nameValue = document.getElementById("ai-judge-name").value.trim();
+                    var promptValue = document.getElementById("ai-judge-prompt").value.trim();
+                    if (!nameValue || !promptValue) {
+                        addBtn.textContent = "Please provide Name & Prompt";
+                        addBtn.style.background = "linear-gradient(90deg,#ffbbaa 65%,#ff7474 100%)";
+                        setTimeout(function() {
+                            addBtn.textContent = "Add";
+                            addBtn.style.background = "";
+                        }, 1100);
+                        return;
+                    }
+                    addBtn.textContent = "Added!";
+                    addBtn.style.background = "linear-gradient(90deg,#41d89d 70%,#9bf7a7 100%)";
+                    console.log("AI Judge Name:", nameValue);
+                    console.log("AI Judge Prompt:", promptValue);
+
+                    var wrapperDiv = document.createElement("div");
+                    wrapperDiv.className = "ai-judge-collapsible";
+                    wrapperDiv.style.margin = "1em 0 0.4em 0";
+                    wrapperDiv.style.borderRadius = "0.42em";
+                    wrapperDiv.style.background = "#f5fafc";
+                    wrapperDiv.style.boxShadow = "0 1.5px 9px #cbe5fb1f";
+                    wrapperDiv.style.padding = "0";
+
+                    var toggleBtn = document.createElement("button");
+                    toggleBtn.type = "button";
+                    toggleBtn.className = "ai-judge-collapsible-toggle";
+                    toggleBtn.style.width = "100%";
+                    toggleBtn.style.background = "none";
+                    toggleBtn.style.border = "none";
+                    toggleBtn.style.textAlign = "left";
+                    toggleBtn.style.fontSize = "1.04em";
+                    toggleBtn.style.fontWeight = "600";
+                    toggleBtn.style.color = "#315699";
+                    toggleBtn.style.cursor = "pointer";
+                    toggleBtn.style.padding = "1em 0.9em";
+                    toggleBtn.style.display = "flex";
+                    toggleBtn.style.alignItems = "center";
+                    var caret = document.createElement("span");
+                    caret.className = "caret-collapsible-icon";
+                    caret.textContent = "▶";
+                    caret.style.marginRight = "0.6em";
+                    caret.style.transition = "transform 0.16s";
+                    toggleBtn.appendChild(caret);
+
+                    var nameLabel = document.createElement("span");
+                    nameLabel.innerHTML = "<strong>Name:</strong> " +
+                        "<span style='color:#315699; font-weight:600'>" + nameValue + "</span>";
+                    toggleBtn.appendChild(nameLabel);
+
+                    var collapsibleDiv = document.createElement("div");
+                    collapsibleDiv.className = "ai-judge-collapsible-content";
+                    collapsibleDiv.style.display = "none";
+                    collapsibleDiv.style.padding = "0 0.9em 1.0em 2.7em";
+
+                    collapsibleDiv.innerHTML = 
+                        "<strong style='color:#24527b;'>Prompt:</strong><br>" +
+                        "<pre style='background:none; display:block; color:#24527b; font-family:inherit; white-space:pre-wrap; margin:0;'>" + promptValue + "</pre>";
+
+                    toggleBtn.onclick = function() {
+                        var isOpen = collapsibleDiv.style.display === "block";
+                        if (isOpen) {
+                            collapsibleDiv.style.display = "none";
+                            caret.style.transform = "";
+                            caret.textContent = "▶";
+                        } else {
+                            collapsibleDiv.style.display = "block";
+                            caret.style.transform = "rotate(90deg)";
+                            caret.textContent = "▼";
+                        }
+                    };
+
+                    wrapperDiv.appendChild(toggleBtn);
+                    wrapperDiv.appendChild(collapsibleDiv);
+
+                    var fieldsMain = document.getElementById("add-ai-judge-fields-main");
+                    if (fieldsMain && fieldsMain.parentNode) {
+                        var displayContainer = fieldsMain.parentNode.querySelector(".ai-judge-display-list");
+                        if (!displayContainer) {
+                            displayContainer = document.createElement("div");
+                            displayContainer.className = "ai-judge-display-list";
+                            displayContainer.style.marginTop = "1em";
+                            fieldsMain.parentNode.insertBefore(displayContainer, fieldsMain.nextSibling);
+                        }
+                        displayContainer.appendChild(wrapperDiv);
+                    }
+
+                    setTimeout(function() {
+                        addBtn.textContent = "Add";
+                        addBtn.style.background = "";
+                        document.getElementById("ai-judge-name").value = "";
+                        document.getElementById("ai-judge-prompt").value = "";
+                    }, 900);
+                };
+            }
+        }, 8);
+    }
+
+    function hideAiJudgeFields() {
+        if (!aiFieldsContainer) return;
+        aiFieldsContainer.innerHTML = "";
+        aiFieldsContainer.style.display = "none";
+    }
+
+    if (metricsSelect) {
+        metricsSelect.addEventListener("change", function(e) {
+            if (metricsSelect.value === "ai_as_judge") {
+                createAiJudgeFields();
+            } else {
+                hideAiJudgeFields();
             }
         });
-        if (!text) {
-            text = node.textContent.trim();
-        }
-        console.log(text);
-        if (text == "Live Chat") {
-            window.location.href = "/chat"
-            
-        } else if (text == "Agent Configuration") {
-                window.location.href = "/agent_config"
-        }
-        
     }
 
-    function updateSection(targetSection) {
-        layout.classList.remove('show-table', 'show-config', 'detail-active');
-        rightPane.classList.remove('active');
-        if(targetSection === 'tests') {
-            layout.classList.add('show-table');
-        } else if(targetSection === 'agent') {
-            layout.classList.add('show-config');
-        } else {
-            layout.classList.add('show-table');
-        }
-    }
-    updateSection('tests');
-
-    navLinks.forEach((node) => {
-      node.addEventListener('click', (e) => {
-        navLinks.forEach(x => x.classList.remove('active'));
-        node.classList.add('active');
-        e.preventDefault();
-        const sec = node.getAttribute('data-section');
-        updateSection(sec);
-        // Console log the section name
-        logSidebarSectionName(node);
-      });
+    var addTestSetForm = document.getElementById('add-test-set-form');
+    addTestSetForm && addTestSetForm.addEventListener('reset', function() {
+        hideAiJudgeFields();
     });
 
-    // Agent config form (dummy submit)
-    // (Form removed, so this handler is now unnecessary)
-
+    // -- End PATCH
 })();
 </script>
+</html>

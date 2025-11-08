@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software Design Scheme Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar {
+            width: 370px;
+            background: rgba(255, 255, 255, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .component-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .component {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .component:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .component:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .component-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .canvas {
+            flex: 1;
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+        }
+
+        .canvas-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, rgba(102, 126, 234, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .dropped-component {
+            position: absolute;
+            min-width: 120px;
+            min-height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: move;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .dropped-component:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        .dropped-component.selected {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .component-title {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .component-type {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .toolbar-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .toolbar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .connection-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-arrow {
+            stroke: url(#arrow-gradient);
+            stroke-width: 2.5;
+            fill: none;
+            marker-end: url(#arrowhead);
+            cursor: pointer;
+            transition: filter 0.15s, stroke 0.15s;
+        }
+
+        .connection-arrow.selected {
+            stroke: #ff6b6b !important;
+            filter: drop-shadow(0 0 6px #ff6b6b88);
+        }
+
+        .drop-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(102, 126, 234, 0.1);
+            pointer-events: auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dropped-component:hover .delete-btn {
+            display: flex;
+        }
+
+        /* Style for link handles (both left and right) */
+        .link-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 2px solid #4ecdc4;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: background 0.2s;
+        }
+        .link-handle:hover {
+            background: #4ecdc4;
+            color: #fff;
+        }
+        .link-handle.active {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+            color: #fff;
+        }
+        .link-handle.right {
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .link-handle.left {
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Delete connection button style */
+        .delete-connection-btn {
+            position: absolute;
+            z-index: 2000;
+            background: #ff6b6b;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            cursor: pointer;
+            transition: background 0.2s;
+            pointer-events: auto;
+        }
+        .delete-connection-btn:hover {
+            background: #e03e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>🔧 Components</h2>
+            
+            <div class="component-category">
+                <div class="category-title">Frontend</div>
+                <div class="component" draggable="true" data-type="web-app">
+                    <div class="component-icon">🌐</div>
+                    <div>Web App</div>
+                </div>
+                <div class="component" draggable="true" data-type="mobile-app">
+                    <div class="component-icon">📱</div>
+                    <div>Mobile App</div>
+                </div>
+                <div class="component" draggable="true" data-type="spa">
+                    <div class="component-icon">⚛️</div>
+                    <div>SPA</div>
+                </div>
+            </div>
+
+            <div class="component-category">
+                <div class="category-title">Backend</div>
+                <div class="component" draggable="true" data-type="api">
+                    <div class="component-icon">🔌</div>
+                    <div>REST API</div>
+                </div>
+                <div class="component" draggable="true" data-type="microservice">
+                    <div class="component-icon">🧩</div>
+                    <div>Microservice</div>
+                </div>
+                <div class="component" draggable="true" data-type="server">
+                    <div class="component-icon">🖥️</div>
+                    <div>Server</div>
+                </div>
+                <div class="component" draggable="true" data-type="lambda">
+                    <div class="component-icon">⚡</div>
+                    <div>Lambda</div>
+                </div>
+            </div>
+
+            <div class="component-category">
+                <div class="category-title">Data</div>
+                <div class="component" draggable="true" data-type="database">
+                    <div class="component-icon">🗄️</div>
+                    <div>Database</div>
+                </div>
+                <div class="component" draggable="true" data-type="cache">
+                    <div class="component-icon">💾</div>
+                    <div>Cache</div>
+                </div>
+                <div class="component" draggable="true" data-type="queue">
+                    <div class="component-icon">📬</div>
+                    <div>Message Queue</div>
+                </div>
+            </div>
+
+            <div class="component-category">
+                <div class="category-title">Infrastructure</div>
+                <div class="component" draggable="true" data-type="load-balancer">
+                    <div class="component-icon">⚖️</div>
+                    <div>Load Balancer</div>
+                </div>
+                <div class="component" draggable="true" data-type="cdn">
+                    <div class="component-icon">🌍</div>
+                    <div>CDN</div>
+                </div>
+                <div class="component" draggable="true" data-type="firewall">
+                    <div class="component-icon">🛡️</div>
+                    <div>Firewall</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas">
+            <div class="canvas-grid"></div>
+            <!-- SVG overlay for arrows -->
+            <svg class="connection-svg"></svg>
+            <div class="drop-zone"></div>
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="clearCanvas()">🗑️ Clear</button>
+                <button class="toolbar-btn" onclick="exportSchema()">💾 Export</button>
+                <button class="toolbar-btn" onclick="toggleConnections()">🔗 Connect</button>
+                <button class="toolbar-btn" id="undoBtn" onclick="undoLastAction()" style="min-width: 55px;">↩️ Undo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let draggedElement = null;
+        let droppedComponents = [];
+        let selectedComponent = null;
+        let connectionMode = false;
+        let connections = [];
+
+        // For undo stack
+        let undoStack = [];
+
+        // For linking via handles
+        let linkingFromComponent = null;
+        let linkingFromSide = null; // "left" or "right"
+        let linkingLine = null;
+
+        // For connection selection
+        let selectedConnection = null;
+        let deleteConnectionBtn = null;
+
+        // Only allow valid, known component type keys
+        const VALID_TYPES = [
+            'web-app', 'mobile-app', 'spa',
+            'api', 'microservice', 'server', 'lambda',
+            'database', 'cache', 'queue',
+            'load-balancer', 'cdn', 'firewall'
+        ];
+
+        const componentIcons = {
+            'web-app': '🌐',
+            'mobile-app': '📱',
+            'spa': '⚛️',
+            'api': '🔌',
+            'microservice': '🧩',
+            'server': '🖥️',
+            'lambda': '⚡',
+            'database': '🗄️',
+            'cache': '💾',
+            'queue': '📬',
+            'load-balancer': '⚖️',
+            'cdn': '🌍',
+            'firewall': '🛡️'
+        };
+
+        const componentNames = {
+            'web-app': 'Web Application',
+            'mobile-app': 'Mobile App',
+            'spa': 'Single Page App',
+            'api': 'REST API',
+            'microservice': 'Microservice',
+            'server': 'Application Server',
+            'lambda': 'Serverless Function',
+            'database': 'Database',
+            'cache': 'Cache Layer',
+            'queue': 'Message Queue',
+            'load-balancer': 'Load Balancer',
+            'cdn': 'Content Delivery Network',
+            'firewall': 'Security Firewall'
+        };
+
+        // Drag and Drop Events - FIXED
+        document.querySelectorAll('.component').forEach(component => {
+            component.addEventListener('dragstart', (e) => {
+                // Use setData to allow drag and drop to work in all browsers
+                const type = e.target.dataset.type;
+                if (!VALID_TYPES.includes(type)) return;
+                e.dataTransfer.setData('text/plain', type);
+                draggedElement = type;
+            });
+        });
+
+        const dropZone = document.querySelector('.drop-zone');
+        const canvas = document.querySelector('.canvas');
+        const svg = document.querySelector('.connection-svg');
+
+        // Add SVG defs for arrowhead and gradient
+        function ensureSVGDefs() {
+            if (svg.querySelector('defs')) return;
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            // Arrowhead marker
+            const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            marker.setAttribute("id", "arrowhead");
+            marker.setAttribute("markerWidth", "10");
+            marker.setAttribute("markerHeight", "7");
+            marker.setAttribute("refX", "10");
+            marker.setAttribute("refY", "3.5");
+            marker.setAttribute("orient", "auto");
+            marker.setAttribute("markerUnits", "strokeWidth");
+            const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            arrowPath.setAttribute("d", "M0,0 L10,3.5 L0,7 Z");
+            arrowPath.setAttribute("fill", "#4ecdc4");
+            marker.appendChild(arrowPath);
+
+            // Gradient
+            const grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+            grad.setAttribute("id", "arrow-gradient");
+            grad.setAttribute("x1", "0%");
+            grad.setAttribute("y1", "0%");
+            grad.setAttribute("x2", "100%");
+            grad.setAttribute("y2", "0%");
+            const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+            stop1.setAttribute("offset", "0%");
+            stop1.setAttribute("stop-color", "#ff6b6b");
+            const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+            stop2.setAttribute("offset", "100%");
+            stop2.setAttribute("stop-color", "#4ecdc4");
+            grad.appendChild(stop1);
+            grad.appendChild(stop2);
+
+            defs.appendChild(marker);
+            defs.appendChild(grad);
+            svg.appendChild(defs);
+        }
+        ensureSVGDefs();
+
+        // Make drop-zone accept pointer events for dragover and drop
+        dropZone.style.pointerEvents = "auto";
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            // Get the type from the drag event
+            let type = draggedElement;
+            if (!type) {
+                // fallback for browsers that only support dataTransfer
+                type = e.dataTransfer.getData('text/plain');
+            }
+            // Sanity filter: only known types may be dropped
+            if (type && VALID_TYPES.includes(type)) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                createDroppedComponent(type, x, y);
+                // Push undo: node add
+                pushUndo({
+                    action: "add-node",
+                    nodeId: droppedComponents[droppedComponents.length-1].id
+                });
+            }
+            draggedElement = null;
+        });
+
+        // --- UNDO LOGIC ---
+        function pushUndo(op) {
+            undoStack.push(op);
+            updateUndoBtnState();
+        }
+
+        window.undoLastAction = function() {
+            // Undo logic: pop last undo entry, act accordingly
+            if (undoStack.length === 0) return;
+            const op = undoStack.pop();
+            if (!op) return;
+
+            if (op.action === "add-node") {
+                // Remove component with id = op.nodeId
+                const idx = droppedComponents.findIndex(comp => comp.id === op.nodeId);
+                if (idx !== -1) {
+                    let compObj = droppedComponents[idx];
+                    // Remove component
+                    window.deleteComponent(compObj.element.querySelector('.delete-btn'));
+                    // Also remove from droppedComponents (deleteComponent does that)
+                }
+            } else if (op.action === "add-connection") {
+                // Remove connection with from,fromSide,to,toSide (must remove SVG arrow too)
+                connections = connections.filter(conn => {
+                    if (conn.from === op.from &&
+                        conn.fromSide === op.fromSide &&
+                        conn.to === op.to &&
+                        conn.toSide === op.toSide) {
+                        let path = svg.querySelector(`.connection-arrow[data-from="${op.from}"][data-from-side="${op.fromSide}"][data-to="${op.to}"][data-to-side="${op.toSide}"]`);
+                        if (path) path.remove();
+                        if (selectedConnection === path) clearConnectionSelection();
+                        return false;
+                    }
+                    return true;
+                });
+            }
+            updateConnections();
+            updateUndoBtnState();
+        }
+
+        function updateUndoBtnState() {
+            const undoBtn = document.getElementById('undoBtn');
+            if (!undoBtn) return;
+            undoBtn.disabled = (undoStack.length === 0);
+            undoBtn.style.opacity = undoStack.length === 0 ? "0.5" : "1";
+        }
+
+        // --- IMPROVED DRAG LOGIC FOR SMOOTHER DRAGGING (unchanged) ---
+        function createDroppedComponent(type, x, y) {
+            if (!VALID_TYPES.includes(type)) return;
+
+            const component = document.createElement('div');
+            component.className = 'dropped-component';
+            component.style.left = x + 'px';
+            component.style.top = y + 'px';
+            component.dataset.type = type;
+            component.dataset.id = Date.now() + Math.floor(Math.random() * 10000);
+
+            const icon = componentIcons[type] || '📦';
+            const name = componentNames[type] || type;
+
+            // Add two link handles: left and right
+            component.innerHTML = `
+                <div class="component-title">${icon}</div>
+                <div class="component-type">${name}</div>
+                <button class="delete-btn" onclick="deleteComponent(this)">×</button>
+                <div class="link-handle left" data-side="left" title="Link from left" style="display: none;">◀️</div>
+                <div class="link-handle right" data-side="right" title="Link from right" style="display: none;">▶️</div>
+            `;
+
+            // Improved dragging variables
+            let isDragging = false;
+            let dragStartX, dragStartY, initialLeft, initialTop;
+            let animationFrameId = null;
+
+            // Store the last mouse event for rAF
+            let lastDragEvent = null;
+
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                lastDragEvent = e;
+                if (!animationFrameId) {
+                    animationFrameId = requestAnimationFrame(updateDragPosition);
+                }
+            }
+
+            function updateDragPosition() {
+                if (!isDragging || !lastDragEvent) {
+                    animationFrameId = null;
+                    return;
+                }
+                // Calculate deltas only on rAF for smooth movement
+                const rect = canvas.getBoundingClientRect();
+                let newLeft = initialLeft + (lastDragEvent.clientX - dragStartX);
+                let newTop = initialTop + (lastDragEvent.clientY - dragStartY);
+
+                // Clamp within canvas
+                const clampedLeft = Math.max(0, Math.min(newLeft, rect.width - component.offsetWidth));
+                const clampedTop = Math.max(0, Math.min(newTop, rect.height - component.offsetHeight));
+
+                component.style.left = clampedLeft + 'px';
+                component.style.top = clampedTop + 'px';
+
+                updateConnections();
+
+                animationFrameId = null;
+                // If still dragging with mouse pressed, keep updating pos as new events arrive.
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                lastDragEvent = null;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            component.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('delete-btn') || e.target.classList.contains('link-handle')) return;
+                // Only left button to drag
+                if (e.button !== 0) return;
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                initialLeft = component.offsetLeft;
+                initialTop = component.offsetTop;
+
+                // Selection logic
+                if (connectionMode) {
+                    selectComponent(component);
+                } else {
+                    clearSelection();
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+
+                // Prevent browser drag image/ghost
+                e.preventDefault();
+            });
+
+            canvas.appendChild(component);
+            droppedComponents.push({
+                element: component,
+                type: type,
+                id: component.dataset.id
+            });
+
+            // Show both link handles on hover
+            component.addEventListener('mouseenter', () => {
+                component.querySelectorAll('.link-handle').forEach(h => h.style.display = 'flex');
+            });
+            component.addEventListener('mouseleave', () => {
+                component.querySelectorAll('.link-handle').forEach(h => {
+                    if (!h.classList.contains('active')) {
+                        h.style.display = 'none';
+                    }
+                });
+            });
+
+            // Link handle events for both left and right
+            component.querySelectorAll('.link-handle').forEach(linkHandle => {
+                linkHandle.addEventListener('mousedown', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    linkingFromComponent = component;
+                    linkingFromSide = linkHandle.classList.contains('left') ? 'left' : 'right';
+                    linkHandle.classList.add('active');
+                    if (linkingLine) {
+                        linkingLine.remove();
+                        linkingLine = null;
+                    }
+                    linkingLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    linkingLine.setAttribute("class", "connection-arrow");
+                    linkingLine.setAttribute("pointer-events", "none");
+                    svg.appendChild(linkingLine);
+
+                    function moveLine(ev) {
+                        drawTempLinkArrow(linkingFromComponent, linkingFromSide, ev.clientX, ev.clientY);
+                    }
+                    function upLine(ev) {
+                        const target = document.elementFromPoint(ev.clientX, ev.clientY);
+                        let toComponent = null;
+                        let toSide = null;
+                        if (target) {
+                            if (target.classList && target.classList.contains('link-handle')) {
+                                toComponent = target.closest('.dropped-component');
+                                toSide = target.classList.contains('left') ? 'left' : 'right';
+                            } else {
+                                let el = target;
+                                while (el && el !== document.body) {
+                                    if (el.classList && el.classList.contains('dropped-component')) {
+                                        toComponent = el;
+                                        break;
+                                    }
+                                    el = el.parentElement;
+                                }
+                                toSide = 'right';
+                            }
+                        }
+                        if (toComponent && toComponent !== linkingFromComponent) {
+                            createConnection(linkingFromComponent, linkingFromSide, toComponent, toSide);
+                            // Push to undo as new connection
+                            pushUndo({
+                                action: "add-connection",
+                                from: linkingFromComponent.dataset.id,
+                                fromSide: linkingFromSide,
+                                to: toComponent.dataset.id,
+                                toSide: toSide
+                            });
+                        }
+                        if (linkingLine) linkingLine.remove();
+                        linkingLine = null;
+                        linkingFromComponent = null;
+                        linkingFromSide = null;
+                        linkHandle.classList.remove('active');
+                        linkHandle.style.display = 'none';
+                        document.removeEventListener('mousemove', moveLine);
+                        document.removeEventListener('mouseup', upLine);
+                    }
+                    document.addEventListener('mousemove', moveLine);
+                    document.addEventListener('mouseup', upLine);
+                });
+            });
+        }
+
+        // Draw a temporary SVG arrow from a component's handle (left/right) to mouse position
+        function drawTempLinkArrow(fromComponent, fromSide, mouseX, mouseY) {
+            if (!linkingLine) return;
+            const fromRect = fromComponent.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+            let fromX, fromY;
+            if (fromSide === 'left') {
+                fromX = fromRect.left - canvasRect.left;
+                fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            } else {
+                fromX = fromRect.left + fromRect.width - canvasRect.left;
+                fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            }
+            const toX = mouseX - canvasRect.left;
+            const toY = mouseY - canvasRect.top;
+            linkingLine.setAttribute("d", `M${fromX},${fromY} L${toX},${toY}`);
+        }
+
+        function selectComponent(component) {
+            if (selectedComponent && selectedComponent !== component) {
+                createConnection(selectedComponent, 'right', component, 'left');
+                // Push undo
+                pushUndo({
+                    action: "add-connection",
+                    from: selectedComponent.dataset.id,
+                    fromSide: "right",
+                    to: component.dataset.id,
+                    toSide: "left"
+                });
+                clearSelection();
+            } else {
+                clearSelection();
+                selectedComponent = component;
+                component.classList.add('selected');
+            }
+        }
+
+        function clearSelection() {
+            if (selectedComponent) {
+                selectedComponent.classList.remove('selected');
+                selectedComponent = null;
+            }
+            clearConnectionSelection();
+        }
+
+        // --- Connection selection and deletion logic ---
+
+        function clearConnectionSelection() {
+            if (selectedConnection) {
+                selectedConnection.classList.remove('selected');
+                selectedConnection = null;
+            }
+            if (deleteConnectionBtn) {
+                deleteConnectionBtn.remove();
+                deleteConnectionBtn = null;
+            }
+        }
+
+        // Helper to get the midpoint of a connection arrow
+        function getConnectionMidpoint(path) {
+            const d = path.getAttribute('d');
+            const match = d.match(/M([\d.]+),([\d.]+) L([\d.]+),([\d.]+)/);
+            if (!match) return {x: 0, y: 0};
+            const x1 = parseFloat(match[1]), y1 = parseFloat(match[2]);
+            const x2 = parseFloat(match[3]), y2 = parseFloat(match[4]);
+            return {x: (x1 + x2) / 2, y: (y1 + y2) / 2};
+        }
+
+        // Now connections are from a component and side, to another component and side
+        function createConnection(from, fromSide, to, toSide) {
+            if (connections.some(conn =>
+                conn.from === from.dataset.id &&
+                conn.fromSide === fromSide &&
+                conn.to === to.dataset.id &&
+                conn.toSide === toSide
+            )) return;
+            const connection = {
+                from: from.dataset.id,
+                fromSide: fromSide,
+                to: to.dataset.id,
+                toSide: toSide,
+                fromElement: from,
+                toElement: to
+            };
+            connections.push(connection);
+            drawConnection(connection);
+        }
+
+        function drawConnection(connection) {
+            ensureSVGDefs();
+            const old = svg.querySelector(`.connection-arrow[data-from="${connection.from}"][data-from-side="${connection.fromSide}"][data-to="${connection.to}"][data-to-side="${connection.toSide}"]`);
+            if (old) old.remove();
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("class", "connection-arrow");
+            path.setAttribute("data-from", connection.from);
+            path.setAttribute("data-from-side", connection.fromSide);
+            path.setAttribute("data-to", connection.to);
+            path.setAttribute("data-to-side", connection.toSide);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "url(#arrow-gradient)");
+            path.setAttribute("stroke-width", "2.5");
+            path.setAttribute("marker-end", "url(#arrowhead)");
+            svg.appendChild(path);
+            updateConnectionArrow(path, connection.fromElement, connection.fromSide, connection.toElement, connection.toSide);
+
+            path.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                selectConnection(path, connection);
+            });
+        }
+
+        function selectConnection(path, connection) {
+            clearConnectionSelection();
+            selectedConnection = path;
+            path.classList.add('selected');
+            const {x, y} = getConnectionMidpoint(path);
+            showDeleteConnectionBtn(x, y, connection);
+        }
+
+        function showDeleteConnectionBtn(x, y, connection) {
+            if (deleteConnectionBtn) deleteConnectionBtn.remove();
+            deleteConnectionBtn = document.createElement('button');
+            deleteConnectionBtn.className = 'delete-connection-btn';
+            deleteConnectionBtn.innerHTML = '×';
+            deleteConnectionBtn.style.left = (x - 11) + 'px';
+            deleteConnectionBtn.style.top = (y - 11) + 'px';
+            canvas.appendChild(deleteConnectionBtn);
+
+            deleteConnectionBtn.onclick = function(e) {
+                e.stopPropagation();
+                connections = connections.filter(conn =>
+                    !(conn.from === connection.from &&
+                      conn.fromSide === connection.fromSide &&
+                      conn.to === connection.to &&
+                      conn.toSide === connection.toSide)
+                );
+                const path = svg.querySelector(`.connection-arrow[data-from="${connection.from}"][data-from-side="${connection.fromSide}"][data-to="${connection.to}"][data-to-side="${connection.toSide}"]`);
+                if (path) path.remove();
+                clearConnectionSelection();
+                // Optionally, could push a "delete-connection" undo (but not required for now)
+            };
+        }
+
+        function updateConnectionArrow(path, fromEl, fromSide, toEl, toSide) {
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            let fromX, fromY, toX, toY;
+            if (fromSide === 'left') {
+                fromX = fromRect.left - canvasRect.left;
+                fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            } else {
+                fromX = fromRect.left + fromRect.width - canvasRect.left;
+                fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            }
+            if (toSide === 'left') {
+                toX = toRect.left - canvasRect.left;
+                toY = toRect.top + toRect.height / 2 - canvasRect.top;
+            } else {
+                toX = toRect.left + toRect.width - canvasRect.left;
+                toY = toRect.top + toRect.height / 2 - canvasRect.top;
+            }
+
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const minPad = 16;
+            let startX = fromX, startY = fromY, endX = toX, endY = toY;
+            if (dist > minPad * 2) {
+                startX = fromX + (dx * minPad) / dist;
+                startY = fromY + (dy * minPad) / dist;
+                endX = toX - (dx * minPad) / dist;
+                endY = toY - (dy * minPad) / dist;
+            }
+            path.setAttribute("d", `M${startX},${startY} L${endX},${endY}`);
+
+            if (selectedConnection === path && deleteConnectionBtn) {
+                const {x, y} = getConnectionMidpoint(path);
+                deleteConnectionBtn.style.left = (x - 11) + 'px';
+                deleteConnectionBtn.style.top = (y - 11) + 'px';
+            }
+        }
+
+        function updateConnections() {
+            connections.forEach(connection => {
+                const path = svg.querySelector(`.connection-arrow[data-from="${connection.from}"][data-from-side="${connection.fromSide}"][data-to="${connection.to}"][data-to-side="${connection.toSide}"]`);
+                if (path) {
+                    updateConnectionArrow(path, connection.fromElement, connection.fromSide, connection.toElement, connection.toSide);
+                }
+            });
+        }
+
+        window.deleteComponent = function(btn) {
+            const component = btn.parentElement;
+            const componentId = component.dataset.id;
+
+            connections = connections.filter(conn => {
+                if (conn.from === componentId || conn.to === componentId) {
+                    const path = svg.querySelector(`.connection-arrow[data-from="${conn.from}"][data-from-side="${conn.fromSide}"][data-to="${conn.to}"][data-to-side="${conn.toSide}"]`);
+                    if (path) path.remove();
+                    if (selectedConnection === path) clearConnectionSelection();
+                    return false;
+                }
+                return true;
+            });
+
+            droppedComponents = droppedComponents.filter(comp => comp.id !== componentId);
+
+            component.remove();
+
+            if (selectedComponent === component) {
+                clearSelection();
+            }
+        }
+
+        window.clearCanvas = function() {
+            droppedComponents.forEach(comp => comp.element.remove());
+            while (svg.firstChild) svg.removeChild(svg.firstChild);
+            ensureSVGDefs();
+            droppedComponents = [];
+            connections = [];
+            clearSelection();
+            undoStack = [];
+            updateUndoBtnState();
+        }
+
+        window.toggleConnections = function() {
+            connectionMode = !connectionMode;
+            const btn = document.querySelector('.toolbar-btn:nth-child(3)');
+            btn.textContent = connectionMode ? '🔗 Exit Connect' : '🔗 Connect';
+            btn.style.background = connectionMode ? '#ff6b6b' : 'rgba(255, 255, 255, 0.9)';
+            btn.style.color = connectionMode ? 'white' : '#333';
+            clearSelection();
+        }
+
+        window.exportSchema = function() {
+            const schema = {
+                components: droppedComponents.map(comp => ({
+                    id: comp.id,
+                    type: comp.type,
+                    x: parseInt(comp.element.style.left),
+                    y: parseInt(comp.element.style.top)
+                })),
+                connections: connections.map(conn => ({
+                    from: conn.from,
+                    fromSide: conn.fromSide,
+                    to: conn.to,
+                    toSide: conn.toSide
+                }))
+            };
+
+            const dataStr = JSON.stringify(schema, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'software-design-schema.json';
+            link.click();
+        }
+
+        // Handle canvas clicks to clear selection
+        canvas.addEventListener('click', (e) => {
+            if (e.target === canvas || e.target.classList.contains('canvas-grid') || e.target.classList.contains('drop-zone')) {
+                clearSelection();
+            }
+        });
+
+        svg.addEventListener('mousedown', (e) => {
+            if (e.target === svg) {
+                clearConnectionSelection();
+            }
+        });
+
+        function updateLinkHandles() {
+            droppedComponents.forEach(comp => {
+                comp.element.querySelectorAll('.link-handle').forEach(handle => {
+                    if (connectionMode) {
+                        handle.style.display = 'flex';
+                    } else {
+                        handle.classList.remove('active');
+                        handle.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        const origToggleConnections = window.toggleConnections;
+        window.toggleConnections = function() {
+            origToggleConnections();
+            updateLinkHandles();
+        };
+
+        updateLinkHandles();
+
+        window.addEventListener('resize', () => {
+            updateConnections();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === "Delete" || e.key === "Backspace") && selectedConnection) {
+                const from = selectedConnection.getAttribute('data-from');
+                const fromSide = selectedConnection.getAttribute('data-from-side');
+                const to = selectedConnection.getAttribute('data-to');
+                const toSide = selectedConnection.getAttribute('data-to-side');
+                connections = connections.filter(conn =>
+                    !(conn.from === from && conn.fromSide === fromSide && conn.to === to && conn.toSide === toSide)
+                );
+                selectedConnection.remove();
+                clearConnectionSelection();
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+                window.undoLastAction();
+            }
+        });
+
+        // Initial state for Undo button
+        updateUndoBtnState();
+    </script>
+</body>
+</html>

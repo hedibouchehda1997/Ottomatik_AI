@@ -81,7 +81,6 @@
         font-size: 1.16em;
         margin-right: 0.3em;
     }
-
     .main-content {
         margin-left: 220px;
         padding: 0;
@@ -106,15 +105,24 @@
         border-radius: 1.2em;
         box-shadow: 0 2px 22px #719de81a;
         padding: 2.7rem 2.5rem 2.2rem 2.5rem;
-        min-height: 0; /* Allows flex shrinking if needed */
+        min-height: 0;
         min-width: 0;
         box-sizing: border-box;
-        /* Remove vertical centering and margin */
+        /* Make sure relative for absolute buttons (fix) */
+        position: relative;
     }
     .field-group {
         display: flex;
         flex-direction: column;
         gap: 0.34em;
+        /* --- Fix: inherit form background for versioning field-groups --- */
+        background: inherit;
+    }
+    /* --- Ensure all versioning groups also get form-style background if inserted at root --- */
+    .agent-config-form > .field-group,
+    .agent-config-form > .field-group.tools-select-group,
+    .agent-config-form > .field-group.instruction-group {
+        background: inherit !important;
     }
     .field-label {
         font-size: 1.13em;
@@ -152,6 +160,7 @@
         flex-direction: column;
         gap: 0.5em;
         margin-top: 0.23em;
+        background: inherit;
     }
     .selected-tools-list {
         display: flex;
@@ -159,6 +168,7 @@
         gap: 0.5em;
         margin-top: 0.5em;
         min-height: 2.1em;
+        background: inherit;
     }
     .tool-chip {
         display: flex;
@@ -173,6 +183,7 @@
         margin: 0 0.04em;
         box-shadow: 0 1px 6px #b6e8fc16;
         position: relative;
+        background-clip: padding-box;
     }
     .tool-chip .remove-tool-btn {
         color: #3667ad;
@@ -192,8 +203,6 @@
         background: #e4ecfa;
         color: #21528f;
     }
-
-    /* Modern and coherent button group for Agent Config form */
     .config-btn-group,
     .config-btn-group.versioning-action-group {
         display: flex;
@@ -203,6 +212,15 @@
         align-items: center;
         margin-top: 1.5em;
         margin-bottom: 0.2em;
+        /* match background, border, and box-shadow to the form */
+        background: #fff;
+        border-radius: 1.2em;
+        box-shadow: 0 2px 22px #719de81a;
+        border: none;
+        padding: 1.1em 0 0.75em 0;
+        /* Ensure on top if necessary */
+        position: relative;
+        z-index: 1;
     }
     .config-btn {
         padding: 0.7em 2em;
@@ -218,6 +236,9 @@
         letter-spacing: 0.01em;
         transition: background 0.18s, color 0.14s, box-shadow 0.17s, transform 0.17s;
         border: 1.5px solid #bdd9f7;
+        /* Fix - make button backgrounds more solid on top of form's white */
+        /* Place on white by default to avoid inconsistent backgrounds */
+        position: relative;
     }
     .config-btn:hover, .config-btn:focus {
         background: linear-gradient(92deg,#e4edfb 60%, #e0f7fa 100%);
@@ -254,6 +275,12 @@
         color: #234c7b;
         box-shadow: 0 3px 18px #aee5ff22;
     }
+    /*--- ADDED new field group for instruction textarea ---*/
+    .field-group.instruction-group {
+        margin-top: 0.6em;
+        margin-bottom: 0;
+        background: inherit !important;
+    }
     @media (max-width: 940px) {
         .main-content {
             margin-left: 0;
@@ -272,6 +299,8 @@
             flex-direction: column;
             gap: 0.7em;
             align-items: stretch;
+            border-radius: 1.2em 1.2em 1.2em 1.2em;
+            box-shadow: 0 2px 22px #719de81a;
         }
     }
 </style>
@@ -304,22 +333,24 @@
                 <select id="agent-type" class="field-select">
                     <option value="React">React</option>
                     <option value="Tool Calling">Tool Calling</option>
-                    <option value="Plan and Execute">Plan and Execute</option>
-                    <option value="Self Reflection">Self Reflection</option>
                 </select>
             </div>
-            <div class="field-group">
+            <div class="field-group" id="model-group">
                 <label for="model" class="field-label">Model</label>
                 <select id="model" class="field-select">
                     <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                     <option value="gpt-4">gpt-4</option>
                 </select>
             </div>
-            <div class="field-group">
+            <div class="field-group" id="count-group">
+                <label for="count-input" class="field-label">Count</label>
+                <input type="number" id="count-input" class="field-input" value="10" min="1" step="1">
+            </div>
+            <div class="field-group" id="system-prompt-group">
                 <label for="system-prompt" class="field-label">System Prompt</label>
                 <textarea id="system-prompt" class="field-textarea" placeholder="Enter system prompt here..."></textarea>
             </div>
-            <div class="field-group tools-select-group">
+            <div class="field-group tools-select-group" id="tools-select-group">
                 <label for="tools-combo" class="field-label">Tools</label>
                 <select id="tools-combo" class="field-select">
                     <option value="" selected disabled>Select a tool...</option>
@@ -329,6 +360,11 @@
                 <div class="selected-tools-list" id="selected-tools-list">
                     <!-- Selected tools will appear here -->
                 </div>
+            </div>
+            <!-- ADDED: Instruction textarea for response generator — shown only for Tool Calling -->
+            <div class="field-group instruction-group" id="instruction-response-generator-group" style="display: none;">
+                <label for="instruction-response-generator" class="field-label">Instruction for response generator</label>
+                <textarea id="instruction-response-generator" class="field-textarea" placeholder="Enter instruction for response generator..."></textarea>
             </div>
             <!-- Modern button group added here -->
             <div class="config-btn-group" id="main-action-group">
@@ -357,10 +393,12 @@
         }
     }
 
-    //---- Versioning form logic ----
+    // Minimal version of helpers for versioning (unchanged)
     function cloneFieldGroup({labelText, labelFor, inputElem}) {
         const group = document.createElement("div");
         group.className = "field-group";
+        // --- Ensure background is always inherited from parent form, solves bug ---
+        group.style.background = "inherit";
         const label = document.createElement("label");
         label.className = "field-label";
         label.setAttribute("for", labelFor);
@@ -386,17 +424,30 @@
         return clone;
     }
 
+    function cloneCountInput(originalId, newId) {
+        // Always create a new <input type="number" ...>
+        const orig = document.getElementById(originalId);
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "field-input";
+        input.id = newId;
+        input.value = "10";
+        input.min = "1";
+        input.step = "1";
+        return input;
+    }
+
     function cloneToolsFieldGroup() {
-        // Clone tools group (field-group tools-select-group), and tweak for new version
-        const origGroup = document.querySelector(".tools-select-group");
         const group = document.createElement("div");
         group.className = "field-group tools-select-group";
-        // New label
+        // --- Ensure background is always inherited, solves bug ---
+        group.style.background = "inherit";
+        // Label
         const label = document.createElement("label");
         label.className = "field-label";
         label.setAttribute("for", "new-tools-combo");
         label.textContent = "New Tools";
-        // New select
+        // Select
         const select = document.createElement("select");
         select.className = "field-select";
         select.id = "new-tools-combo";
@@ -405,27 +456,42 @@
             <option value="tavily search">Tavily Search</option>
             <option value="calculate">Calculate</option>
         `;
-        // New selected tools container
+        // Chips list
         const selectedList = document.createElement("div");
         selectedList.className = "selected-tools-list";
         selectedList.id = "new-selected-tools-list";
-        group.appendChild(label);
-        group.appendChild(select);
-        group.appendChild(selectedList);
+        // --- Ensure background is inherited for selected tools list ---
+        selectedList.style.background = "inherit";
+        group.appendChild(label); group.appendChild(select); group.appendChild(selectedList);
+
+        // Custom (VERSIONING) Instruction textarea for response generator
+        const instructionGroup = document.createElement("div");
+        instructionGroup.className = "field-group instruction-group";
+        instructionGroup.id = "new-instruction-response-generator-group";
+        instructionGroup.style.display = "none";
+        // Ensures new version instruction field is visually within the form's background
+        instructionGroup.style.background = "inherit";
+        const instructionLabel = document.createElement("label");
+        instructionLabel.className = "field-label";
+        instructionLabel.setAttribute("for", "new-instruction-response-generator");
+        instructionLabel.textContent = "Instruction for response generator";
+        const instructionTextarea = document.createElement("textarea");
+        instructionTextarea.id = "new-instruction-response-generator";
+        instructionTextarea.className = "field-textarea";
+        instructionTextarea.placeholder = "Enter instruction for response generator...";
+        instructionGroup.appendChild(instructionLabel);
+        instructionGroup.appendChild(instructionTextarea);
+        group.appendChild(instructionGroup);
+
         return group;
     }
 
-    // Button event methods
+    // Button event methods (modified for count input)
     function OnVersionningClicked() {
-        // Remove Versioning and Apply button group
         const mainActionGroup = document.getElementById("main-action-group");
-        if (mainActionGroup) {
-            mainActionGroup.remove();
-        }
-        // Get the form element
+        if (mainActionGroup) mainActionGroup.remove();
         const form = document.querySelector('.agent-config-form');
-        // Insert fields after the last field group
-        // 1. New Agent Type
+        // New fields
         const newAgentTypeGroup = cloneFieldGroup({
             labelText: "New Agent Type",
             labelFor: "new-agent-type",
@@ -434,7 +500,8 @@
                 return select;
             })()
         });
-        // 2. New Model
+
+        // Re-ordered: Add New Model THEN New Count
         const newModelGroup = cloneFieldGroup({
             labelText: "New Model",
             labelFor: "new-model",
@@ -443,7 +510,16 @@
                 return select;
             })()
         });
-        // 3. New System Prompt
+
+        const newCountGroup = cloneFieldGroup({
+            labelText: "New Count",
+            labelFor: "new-count-input",
+            inputElem: (() => {
+                const countInput = cloneCountInput("count-input", "new-count-input");
+                return countInput;
+            })()
+        });
+
         const newPromptGroup = cloneFieldGroup({
             labelText: "New System Prompt",
             labelFor: "new-system-prompt",
@@ -452,16 +528,58 @@
                 return textarea;
             })()
         });
-        // 4. New Tools
         const newToolsGroup = cloneToolsFieldGroup();
 
-        // Insert after the last tools group
-        form.appendChild(newAgentTypeGroup);
-        form.appendChild(newModelGroup);
-        form.appendChild(newPromptGroup);
-        form.appendChild(newToolsGroup);
+        // Fix: insert in a container DIV with background (to avoid any future bug)
+        if (!form.querySelector('.versioning-fields-container')) {
+            const container = document.createElement('div');
+            container.className = 'versioning-fields-container';
+            // Ensure same background as form
+            container.style.background = "inherit";
+            container.style.borderRadius = "inherit";
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.gap = "2.1em";
+            container.style.padding = "0"; // no extra padding
+            container.style.margin = "0";
+            container.style.boxSizing = "border-box";
+            // Add new fields to container
+            container.appendChild(newAgentTypeGroup);
+            container.appendChild(newModelGroup);
+            container.appendChild(newCountGroup);
+            container.appendChild(newPromptGroup);
+            container.appendChild(newToolsGroup);
+            // Insert container at the end of the form but before buttons
+            form.appendChild(container);
+        }
 
-        // Add the action buttons: Cancel and Create New Version
+        // If new versioning fields already exist from a previous buggy state, remove them (defensive)
+        Array.from(form.children).forEach(child => {
+            if (
+                child !== form.querySelector('.versioning-fields-container') &&
+                (child === newAgentTypeGroup || child === newModelGroup || child === newCountGroup || child === newPromptGroup || child === newToolsGroup)
+            ) {
+                child.remove();
+            }
+        });
+
+        // Versioning: show/hide additional instruction textarea under newToolsGroup
+        const newAgentTypeSelect = newAgentTypeGroup.querySelector('select');
+        const newInstructionGroup = newToolsGroup.querySelector("#new-instruction-response-generator-group");
+        // ADDED: Hide newCountGroup for Tool Calling
+        function toggleNewInstructionAndCountFields() {
+            if (newAgentTypeSelect.value === "Tool Calling") {
+                newInstructionGroup.style.display = "";
+                newCountGroup.style.display = "none";
+            } else {
+                newInstructionGroup.style.display = "none";
+                newCountGroup.style.display = "";
+            }
+        }
+        // Initial state for versioning
+        toggleNewInstructionAndCountFields();
+        newAgentTypeSelect.addEventListener("change", toggleNewInstructionAndCountFields);
+
         const btnGroup = document.createElement("div");
         btnGroup.className = "config-btn-group versioning-action-group";
         btnGroup.id = "versioning-action-group";
@@ -471,13 +589,9 @@
         cancelBtn.className = "config-btn cancel";
         cancelBtn.textContent = "Cancel";
         cancelBtn.onclick = function() {
-            // Remove newly added fields and the group itself
-            newAgentTypeGroup.remove();
-            newModelGroup.remove();
-            newPromptGroup.remove();
-            newToolsGroup.remove();
+            const container = form.querySelector('.versioning-fields-container');
+            if (container) container.remove();
             btnGroup.remove();
-            // Restore buttons
             restoreMainActionButtons();
         };
 
@@ -486,32 +600,27 @@
         createBtn.className = "config-btn create";
         createBtn.textContent = "Create New Version";
         createBtn.onclick = function() {
-            // ---------- BEGIN REWRITE FOR INSTRUCTION ----------
-            // Collect old and new values for comparison
-
-            // 1. Get old values
+            // Same as before
             const oldAgentType = document.getElementById("agent-type").value;
+            const oldCount = document.getElementById("count-input").value;
             const oldModel = document.getElementById("model").value;
             const oldPrompt = document.getElementById("system-prompt").value;
-
             // Gather current selected tools (for old)
             const oldSelectedTools = [];
             const selectedToolsList = document.getElementById("selected-tools-list");
             if (selectedToolsList) {
                 const chips = selectedToolsList.querySelectorAll('.tool-chip');
                 chips.forEach(function(chip) {
-                    // Don't include the "x" text
                     let textNodes = Array.from(chip.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
                     let name = textNodes.map(n => n.textContent.trim()).join(' ');
                     if (name) oldSelectedTools.push(name);
                 });
             }
-
-            // 2. Get new values
+            // New values
             const newAgentType = document.getElementById("new-agent-type").value;
+            const newCount = document.getElementById("new-count-input").value;
             const newModel = document.getElementById("new-model").value;
             const newPrompt = document.getElementById("new-system-prompt").value;
-
             // Gather new selected tools
             const newSelectedTools = [];
             const newSelectedToolsList = document.getElementById("new-selected-tools-list");
@@ -523,8 +632,12 @@
                     if (name) newSelectedTools.push(name);
                 });
             }
-
-            // Compare "oldSelectedTools" and "newSelectedTools" as arrays (order and contents)
+            // Get new instruction value (for Tool Calling)
+            let newInstruction = '';
+            const newInstructionElem = document.getElementById('new-instruction-response-generator');
+            if (newInstructionElem && newInstructionElem.parentElement.style.display !== "none") {
+                newInstruction = newInstructionElem.value;
+            }
             function arraysEqual(arr1, arr2) {
                 if (arr1.length !== arr2.length) return false;
                 for (let i = 0; i < arr1.length; i++) {
@@ -532,31 +645,28 @@
                 }
                 return true;
             }
-
-            // Compare everything
             const allSame =
                 oldAgentType === newAgentType &&
+                oldCount === newCount &&
                 oldModel === newModel &&
                 oldPrompt === newPrompt &&
                 arraysEqual(oldSelectedTools, newSelectedTools);
+                // (Could compare instruction for completeness)
 
             if (allSame) {
                 console.log("they're all the same");
             } else {
                 console.log("there's a change!!");
             }
-            // ---------- END REWRITE FOR INSTRUCTION ----------
         };
 
         btnGroup.appendChild(cancelBtn);
         btnGroup.appendChild(createBtn);
         form.appendChild(btnGroup);
-
-        // New tools select logic
+        // New tools select logic for versioning
         const newToolsCombo = document.getElementById("new-tools-combo");
         const newSelectedToolsList = document.getElementById("new-selected-tools-list");
         let newSelectedTools = [];
-
         function renderNewSelectedTools() {
             newSelectedToolsList.innerHTML = "";
             if (newSelectedTools.length === 0) {
@@ -566,7 +676,6 @@
                 const chip = document.createElement("div");
                 chip.className = "tool-chip";
                 chip.textContent = capitalize(tool);
-
                 const removeBtn = document.createElement("button");
                 removeBtn.className = "remove-tool-btn";
                 removeBtn.type = "button";
@@ -592,7 +701,6 @@
                 newSelectedTools.push(value);
                 renderNewSelectedTools();
             }
-            // Reset dropdown to "Select..." after selection
             newToolsCombo.selectedIndex = 0;
         });
         renderNewSelectedTools();
@@ -600,7 +708,10 @@
 
     function restoreMainActionButtons() {
         const form = document.querySelector('.agent-config-form');
-        // Recreate button group with both buttons
+        // Remove container if present
+        const container = form.querySelector('.versioning-fields-container');
+        if (container) container.remove();
+
         const mainActionGroup = document.createElement("div");
         mainActionGroup.className = "config-btn-group";
         mainActionGroup.id = "main-action-group";
@@ -625,6 +736,7 @@
         console.log("Apply");
     }
 
+    // --- Dynamic Agent Type Form Behaviour for "React" and "Tool Calling" ---
     document.addEventListener("DOMContentLoaded", function() {
         var sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
         sidebarLinks.forEach(function(link) {
@@ -633,7 +745,37 @@
             });
         });
 
-        // ---- Agent Config Form logic ----
+        // --- Agent Type dynamic rendering ---
+        const agentTypeSelect = document.getElementById('agent-type');
+        const modelGroup = document.getElementById('model-group');
+        const systemPromptGroup = document.getElementById('system-prompt-group');
+        const toolsSelectGroup = document.getElementById('tools-select-group');
+        const countGroup = document.getElementById('count-group');
+        const instructionGroup = document.getElementById('instruction-response-generator-group');
+
+        function setFormFieldsForAgentType(type) {
+            if (type === "React") {
+                // Show all four: Model, Count, System Prompt, Tools
+                modelGroup.style.display = "";
+                countGroup.style.display = "";
+                systemPromptGroup.style.display = "";
+                toolsSelectGroup.style.display = "";
+                if (instructionGroup) instructionGroup.style.display = "none";
+            } else if (type === "Tool Calling") {
+                modelGroup.style.display = "";
+                countGroup.style.display = "none"; // HIDE count for Tool Calling
+                systemPromptGroup.style.display = "";
+                toolsSelectGroup.style.display = "";
+                if (instructionGroup) instructionGroup.style.display = "";
+            }
+        }
+        // Initialize
+        setFormFieldsForAgentType(agentTypeSelect.value);
+        agentTypeSelect.addEventListener('change', function() {
+            setFormFieldsForAgentType(agentTypeSelect.value);
+        });
+
+        // ---- Agent Config Form logic (tools select) ----
         const toolsCombo = document.getElementById("tools-combo");
         const selectedToolsList = document.getElementById("selected-tools-list");
         let selectedTools = [];
@@ -675,7 +817,6 @@
                 selectedTools.push(value);
                 renderSelectedTools();
             }
-            // Reset dropdown to "Select..." after selection
             toolsCombo.selectedIndex = 0;
         });
 

@@ -28,6 +28,7 @@ def tavily_search(query:str, engine:str="google", location : str="", top_n : int
 
 TavilySearchTool = Tool(
     name = "tavily_search" , 
+    exterior_name = "Tavily Search" , 
     description = """
 This tool allow doing web search on google. 
 Inputs : 

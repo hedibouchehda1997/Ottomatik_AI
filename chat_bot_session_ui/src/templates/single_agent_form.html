@@ -1,0 +1,986 @@
+<!-- Styles: adjusted for true side-by-side split (not overlapping) on desktop; overlay only for mobile -->
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        height: 100vh;
+        min-height: 100vh;
+        background: #f7f9fb;
+    }
+    
+    .split-container {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        transition: background .32s cubic-bezier(.77,0,.175,1);
+        background: #f8fafc;
+        overflow: hidden;
+        position: relative;
+    }
+    .split-container:not(.split-active) .split-right {
+        pointer-events: none;
+    }
+    .split-left,
+    .split-right {
+        height: 100vh;
+        transition:
+            width .4s cubic-bezier(.77,0,.175,1),
+            box-shadow .26s cubic-bezier(.77,0,.175,1),
+            opacity .3s;
+        will-change: width,box-shadow,opacity;
+        min-width: 0;
+        min-height: 0;
+    }
+    .split-left {
+        flex: 1 1 620px;
+        min-width: 0;
+        z-index: 2;
+        transition: width .4s cubic-bezier(.77,0,.175,1);
+        background: #f8fafc;
+        width: 100vw;
+        /* Make left panel scrollable on overflow */
+        overflow-y: auto;
+        /* NEW: enable smooth scrolling for buttons to be visible */
+        overscroll-behavior: contain;
+    }
+    .split-right {
+        background: linear-gradient(118deg,#edf8ff 67%,#e1f4fc 100%);
+        box-shadow: -9px 0 38px #bdd9f747;
+        width: 0;
+        min-width: 0;
+        opacity: 0;
+        z-index: 3;
+        overflow-y: auto;
+        pointer-events: none;
+        transition:
+            width .4s cubic-bezier(.67, 0, 0.21, 1),
+            opacity .31s cubic-bezier(.34,0,.62,1),
+            box-shadow .28s;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        position: relative;
+    }
+    .split-container.split-active .split-left {
+        width: 50vw;
+        min-width: 320px;
+        max-width: 60vw;
+        flex: 1 1 0;
+    }
+    .split-container.split-active .split-right {
+        width: 50vw;
+        min-width: 300px;
+        max-width: 60vw;
+        opacity: 1;
+        pointer-events: all;
+    }
+    @media (max-width: 900px) {
+        .split-container {
+            flex-direction: column;
+        }
+        .split-left, .split-right {
+            width: 100vw !important;
+            max-width: 100vw !important;
+        }
+        .split-container.split-active .split-right {
+            position: absolute;
+            top: 0; right: 0; left: 0; bottom: 0;
+            z-index: 100;
+            box-shadow: none;
+            width: 100vw !important;
+            min-width: 0 !important;
+            max-width: 100vw !important;
+            opacity: 1;
+            pointer-events: all;
+        }
+        .split-container.split-active .split-left {
+            filter: blur(0.7px) brightness(0.99);
+        }
+        /* Make left panel scrollable on mobile */
+        .split-left {
+            overflow-y: auto !important;
+        }
+    }
+
+    .single-agent-form-main {
+        padding: 0;
+        flex: 1 1 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        background: #f8fafc;
+        height: 100vh;
+        box-sizing: border-box;
+        width: 100vw;
+        margin: 0;
+        /* Added: allow scrolling inside form main for content overflow (for buttons) */
+        overflow-y: auto;
+    }
+    .agent-config-form {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2.1em;
+        width: 100%;
+        max-width: 100vw;
+        margin: 0;
+        background: #fff;
+        border-radius: 1.2em;
+        box-shadow: 0 2px 22px #719de81a;
+        padding: 2.7rem 2.5rem 2.2rem 2.5rem;
+        min-height: 0; /* Allows flex shrinking if needed */
+        min-width: 0;
+        box-sizing: border-box;
+        /* Make form scrollable with overflow if needed, especially for mobile or many fields */
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.34em;
+    }
+    .field-label {
+        font-size: 1.13em;
+        color: #2c4e80;
+        font-weight: 600;
+        margin-bottom: 0.31em;
+        letter-spacing: 0.01em;
+    }
+    .field-select, .field-input, .field-textarea, .field-input-number {
+        font-size: 1.08em;
+        padding: 0.76em 1.1em;
+        border: 1.5px solid #bdd9f7;
+        border-radius: 0.75em;
+        background: #f7fcff;
+        color: #234c7b;
+        outline: none;
+        transition: border-color 0.15s;
+        font-family: inherit;
+        margin-bottom: 0;
+        min-width: 0;
+    }
+    .field-select:focus, .field-input:focus, .field-textarea:focus, .field-input-number:focus {
+        border-color: #3667ad;
+        background: #f3f7fb;
+    }
+    .field-textarea {
+        min-height: 190px;
+        resize: vertical;
+        font-size: 1.08em;
+        font-family: inherit;
+        line-height: 1.45;
+    }
+    .tools-select-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        margin-top: 0.23em;
+    }
+    .selected-tools-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5em;
+        margin-top: 0.5em;
+        min-height: 2.1em;
+    }
+    .tool-chip {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(93deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        border: 1.2px solid #bdd9f7;
+        border-radius: 2em;
+        padding: 0.25em 0.86em 0.25em 0.9em;
+        font-size: 1.00em;
+        font-weight: 500;
+        margin: 0 0.04em;
+        box-shadow: 0 1px 6px #b6e8fc16;
+        position: relative;
+    }
+    .tool-chip .remove-tool-btn {
+        color: #3667ad;
+        background: none;
+        border: none;
+        padding: 0.1em 0.52em 0.1em 0.23em;
+        cursor: pointer;
+        font-size: 1.05em;
+        font-weight: bold;
+        outline: none;
+        margin-left: 0.3em;
+        border-radius: 1em;
+        transition: background 0.15s;
+    }
+    .tool-chip .remove-tool-btn:hover,
+    .tool-chip .remove-tool-btn:focus {
+        background: #e4ecfa;
+        color: #21528f;
+    }
+    .config-btn-group {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1.5em;
+        margin-bottom: 0.2em;
+        gap: 18px;
+        position: relative;
+        /* Ensure group always visible even if overflow */
+        z-index: 10;
+    }
+    .config-btn {
+        padding: 0.7em 5em; /* Make button wider */
+        border-radius: 0.8em;
+        border: none;
+        outline: none;
+        font-size: 1.15em;
+        font-weight: 600;
+        background: linear-gradient(95deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 10px 0 #c3e8fa18;
+        cursor: pointer;
+        letter-spacing: 0.01em;
+        transition: background 0.18s, color 0.14s, box-shadow 0.17s, transform 0.17s;
+        border: 1.5px solid #bdd9f7;
+        min-width: 160px;
+        max-width: 100%;
+        display: block;
+        /* All buttons have same base */
+    }
+    .config-btn.showall {
+        background: linear-gradient(97deg,#f6fff7 72%,#dae7f6 99%);
+        color: #22a197;
+        border: 1.5px solid #add8fb;
+        font-weight: 500;
+    }
+    .config-btn.showall:hover, .config-btn.showall:focus {
+        background: linear-gradient(96deg,#d4eeea 75%,#efffff 100%);
+        color: #1d7c77;
+        box-shadow: 0 2.5px 16px #b7e0fd24;
+        transform: translateY(-1px) scale(1.01);
+    }
+    .config-btn:hover, .config-btn:focus {
+        background: linear-gradient(92deg,#e4edfb 60%, #e0f7fa 100%);
+        color: #21528f;
+        box-shadow: 0 2.5px 16px #b7e0fd24;
+        transform: translateY(-1px) scale(1.01);
+    }
+    .config-btn.apply {
+        background: linear-gradient(90deg,#cbefff 70%,#bfdafc 100%);
+        color: #2467ac;
+        border-color: #add8fb;
+    }
+    .config-btn.apply:hover, .config-btn.apply:focus {
+        background: linear-gradient(88deg,#afd7fa 60%,#c1f1ff 100%);
+        color: #234c7b;
+        box-shadow: 0 3px 18px #aee5ff22;
+    }
+    @media (max-width: 940px) {
+        .split-container {
+            flex-direction: column;
+        }
+        .split-left, .split-right {
+            width: 100vw !important;
+            max-width: 100vw !important;
+        }
+        .single-agent-form-main {
+            margin-left: 0;
+            width: 100vw;
+            padding: 0.9em;
+        }
+        .agent-config-form {
+            padding: 1.4rem 0.8rem 1.3rem 0.8rem;
+            margin-top: 0;
+            min-width: 0;
+            min-height: 0;
+            max-width: 100vw;
+        }
+        .config-btn-group {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .config-btn {
+            min-width: 140px;
+            width: 90vw;
+            max-width: 99vw;
+        }
+        /* Make sure the form can scroll on mobile if very tall (eg. Tool Calling agent) */
+        .agent-config-form {
+            overflow-y: auto !important;
+            max-height: 96vh;
+        }
+    }
+    #response-generator-instructions-group {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    .close-split-btn {
+        position: absolute;
+        top: 18px; right: 20px;
+        background: linear-gradient(98deg,#fff,#e8f5ff 88%);
+        border-radius: 2em;
+        border: none;
+        color: #21a9a9;
+        box-shadow: 0 0.7px 7px #bee5ff28;
+        width: 38px; height: 38px;
+        font-size: 1.45em;
+        font-weight: bold;
+        z-index: 2310;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .18s, color .17s, box-shadow .17s;
+    }
+    .close-split-btn:hover, .close-split-btn:focus {
+        background: #e2f6fd;
+        color: #185a55;
+        box-shadow: 0 3px 15px #d7ecf7a6;
+    }
+
+    /* ---- SPLIT RIGHT MODERN TOP PRESENTATION ---- */
+    .split-right-content-inner {
+        width: 100%;
+        max-width: 100%; /* Changed: occupy all the width of its container */
+        margin: 0;
+        padding: 42px 34px 38px 38px;
+        color: #233956;
+        font-family: inherit;
+        font-size: 1.18em;
+        animation: fadeInRight .52s cubic-bezier(.44,.85,.27,1);
+        box-shadow: 0 2px 24px #66a6e133;
+        border-radius: 0.7em 0.7em 1.2em 1.2em;
+        background: rgba(255,255,255,0.89);
+        letter-spacing: 0.009em;
+        /* Changed: not centered, but top-aligned */
+        min-height: 0;
+        min-width: 0;
+        margin-top: 0.7em;
+        margin-bottom: 2.8em;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        position: relative;
+        box-sizing: border-box;
+
+        /* === NEW: make right panel text/container take all available height === */
+        flex: 1 1 auto;
+        height: 100%;
+        /* ADDED: allow scrolling for overflow content when text is very long */
+        overflow-y: auto;
+        /* ADDED: Never have horizontal scroll, force word break if needed */
+        overflow-x: hidden;
+    }
+    @media (max-width: 900px) {
+        .split-right-content-inner {
+            max-width: 97vw;
+            padding: 32px 8vw 21px 8vw;
+            margin-right: auto;
+            margin-left: auto;
+            border-radius: 1.1em;
+        }
+    }
+    @keyframes fadeInRight {
+        from { opacity: 0; transform: translateX(60px);}
+        to { opacity: 1; transform: none;}
+    }
+
+    /* Section title for the preview, modern look */
+    .preview-title {
+        font-size: 1.25em;
+        color: #185a9d;
+        font-weight: 700;
+        margin-bottom: 0.2em;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 0.8em;
+        opacity: 0.92;
+    }
+    .preview-title::before {
+        content: "";
+        display: inline-block;
+        width: 17px;
+        height: 17px;
+        background: linear-gradient(135deg, #93e4fd, #4cb8f5 72%);
+        border-radius: 5px;
+        margin-right: 0.1em;
+    }
+    /* Divider */
+    .preview-divider {
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, #cee4fd 15%, #d3eefc 65%, #f6ffff 100%);
+        border: none;
+        margin: 6px 0 12px 0;
+        border-radius: 1em;
+        opacity: 0.5;
+    }
+    /* Modern summary entry */
+    .preview-fields {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25em;
+        margin-top: 0.1em;
+        /* NEW: grow to fill available height if needed */
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    .preview-field-label {
+        font-size: 1.01em;
+        color: #4378b7;
+        font-weight: 600;
+        margin-bottom: 0.22em;
+        letter-spacing: 0.01em;
+        opacity: 0.95;
+    }
+    .preview-field-content {
+        font-size: 1em;
+        white-space: pre-line;
+        color: #133558;
+        border-radius: 0.43em;
+        background: #f4faff;
+        box-shadow: 0 1px 6px #d2eaff0f;
+        padding: 0.7em 1em;
+        border: 1px solid #e5eefb;
+        font-family: inherit;
+        min-height: 1em;
+        margin-bottom: 0.2em;
+        line-height: 1.57;
+        white-space: pre;   
+        font-family: monospace;
+        /* ADDED: wrap long lines and allow vertical scroll for long content */
+        word-break: break-word;
+        overflow-wrap: break-word;
+        overflow-y: auto;
+        max-height: 70vh;
+    }
+    .preview-empty {
+        opacity: 0.52;
+        color: #7aa1be;
+        font-style: italic;
+    }
+    /* --- for number input below model --- */
+    /* Removed .field-number-group and .field-number-label styles---not needed under new structure */
+    .field-input-number {
+        font-size: 1.08em;
+        border: 1.5px solid #bdd9f7;
+        border-radius: 0.75em;
+        padding: 0.76em 1.1em;
+        font-family: inherit;
+        width: 94px;
+        background: #f9fcfe;
+        color: #1b395d;
+        margin-bottom: 0;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.15s;
+    }
+    .field-input-number:focus {
+        border-color: #3667ad;
+        background: #f3f7fb;
+    }
+</style>
+
+<script id="data-json" type="application/json">
+        {{ data | tojson }}
+</script>
+
+<!-- <script>
+
+</script> -->
+
+
+<div class="split-container" id="split-container">
+    <div class="split-left">
+        <!-- Main content without sidebar, form fills the space -->
+        <main class="single-agent-form-main">
+            <form class="agent-config-form" autocomplete="off" onsubmit="event.preventDefault();">
+                <div class="field-group">
+                    <label for="agent-type" class="field-label">Agent Type</label>
+                    <select id="agent-type" class="field-select"></select>
+                </div>
+                <!-- Agent name field, inserted here as requested -->
+                <div class="field-group">
+                    <label for="agent-name" class="field-label">Agent name</label>
+                    <input type="text" id="agent-name" class="field-input" placeholder="Enter agent name..." />
+                </div>
+                <div class="field-group" id="model-group">
+                    <label for="model" class="field-label">Model</label>
+                    <select id="model" class="field-select"></select>
+                    <!-- NEW: React count presented as standard field-group -->
+                    <div class="field-group" id="react-number-group" style="display:none;">
+                        <label for="react-number" class="field-label">Count</label>
+                        <input
+                            type="number"
+                            id="react-number"
+                            min="1"
+                            step="1"
+                            class="field-input-number"
+                            value="10"
+                        />
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label for="system-prompt" class="field-label">System Prompt</label>
+                    <textarea id="system-prompt" class="field-textarea" placeholder="Enter system prompt here..."></textarea>
+                </div>
+                <div class="field-group tools-select-group">
+                    <label for="tools-combo" class="field-label">Tools</label>
+                    <select id="tools-combo" class="field-select"></select>
+                    <div class="selected-tools-list" id="selected-tools-list">
+                        <!-- Selected tools will appear here -->
+                    </div>
+                </div>
+                <div class="field-group" id="response-generator-instructions-group" style="display:none;">
+                    <label for="response-generator-instructions" class="field-label">Instruction for response generator</label>
+                    <textarea
+                        id="response-generator-instructions"
+                        class="field-textarea"
+                        placeholder="Instruction for response generator (optional)..."></textarea>
+                </div>
+
+                <!-- Modern button group with Apply and Show all -->
+                <div class="config-btn-group" id="main-action-group">
+                    <button type="button" class="config-btn apply" id="btn-apply" onclick="OnApplyClicked()">Apply</button>
+                    <button type="button" class="config-btn showall" id="btn-show-all" onclick="onShowAllClick(event)">Show all</button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Split right panel: always top-aligned, modern summary look -->
+    <div class="split-right" id="split-right" aria-hidden="true">
+        <button class="close-split-btn" id="close-split-btn" title="Close" tabindex="1">&times;</button>
+        <div class="split-right-content-inner" tabindex="0">
+            <div class="preview-title">Agent Settings Preview</div>
+            <div class="preview-divider"></div>
+            <div id="split-right-inner-content">
+                <!-- Populated on run -->
+                <!-- <div class="preview-fields" id = "preview-fields-id" >
+                    <div class="preview-field-label">System Prompt</div>
+                    <div class="preview-field-content preview-empty">Loading...</div>
+                </div> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var data = null ; 
+    // We'll hoist selectedTools to enable use in OnApplyClicked.
+    let selectedTools = [];
+
+    window.addEventListener("DOMContentLoaded", () => {
+        data = JSON.parse(document.getElementById("data-json").textContent);
+        console.log("printing the react initial prompt") ; 
+        // console.log("Data from FastAPI:", data);
+        // console.log("\n\n\n") ; 
+        console.log(data)
+        // console.log(data["tool_calling"]["generator"]) 
+        // console.log("\n\n")
+        // console.log(data["tool_calling"]["tool_call"])
+
+        // Call set*ComboValues for all combos
+        setAgentTypeComboValues();
+        setModelComboValues();
+        setToolsComboValues();
+
+        updateReactCountVisibility();
+    });
+
+    function OnApplyClicked() {
+        // Get all field values, using the labels as keys.
+        function getLabelText(forId) {
+            var label = document.querySelector('label[for="' + forId + '"]');
+            if (label)
+            {
+                label_content = label.textContent.trim();
+                let replaceSpaces = label_content.replace(/ /g, "_").toLowerCase();
+
+                return replaceSpaces
+            } 
+    
+            return forId;
+        }
+
+        // Validation: System Prompt and Tools required
+        const systemPromptValue = document.getElementById("system-prompt").value.trim();
+        if (!systemPromptValue) {
+            alert("System Prompt cannot be empty.");
+            return;
+        }
+        if (!selectedTools || selectedTools.length === 0) {
+            alert("Please select at least one Tool.");
+            return;
+        }
+
+        let formData = {};
+        formData[getLabelText("agent-type")] = document.getElementById("agent-type").value;
+        // Add Agent name to formData
+        formData[getLabelText("agent-name")] = document.getElementById("agent-name").value;
+        formData[getLabelText("tools-combo")] = selectedTools && selectedTools.length > 0 ? selectedTools.slice() : [];
+        console.log("from on aplly ") ; 
+        // console.log(document.getElementById("agent-type").value) ; 
+        if (document.getElementById("agent-type").value == "tool_calling") {
+            console.log("we are in the case of tool calling pattern  !!!!!!!") ;
+            let respInstructionsGroup = document.getElementById("response-generator-instructions-group");
+            if (respInstructionsGroup && respInstructionsGroup.style.display !== "none") {
+                let generator_instructions = data["patterns"]["tool_calling"]["prompts"]["prompt_generator"].replace("{more_intstruction}",respInstructionsGroup.value )  ;  
+                let full_generator_prompt = data["patterns"]["tool_calling"]["prompts"]["prompt_tool_call"].replace("{system_prompt}",systemPromptValue) ; 
+                formData[getLabelText("response-generator-instructions")] = generator_instructions; 
+                formData[getLabelText("system-prompt")] = full_generator_prompt ;       
+            }
+            
+        } else if (document.getElementById("agent-type").value == "react") {
+            console.log("we are in the case of react agent !!!!!") ; 
+            formData[getLabelText("system-prompt")] = systemPromptValue;
+                    let reactNumberGroup = document.getElementById("react-number-group");
+            if (reactNumberGroup && reactNumberGroup.style.display !== "none") {
+                formData[getLabelText("react-number")] = document.getElementById("react-number").value;
+            }
+
+        }
+        formData[getLabelText("model")] = document.getElementById("model").value;
+        console.log("Form Data:", formData);
+        fetch ("http://localhost:3030/set_agent" , {
+            method : 'POST' , 
+            headers : {
+                'Content-Type': 'application/json' , 
+            }, 
+            body : JSON.stringify(formData)
+        }).then(response => response.json())
+         .then(result => console.log(result))
+         .catch(error => console.error('Error:', error));
+         window.location.href = "/chat";
+
+    }
+
+    // Set agent type combo values
+    function setAgentTypeComboValues() {
+        console.log("from setAgentTypeComboValues") ; 
+        console.log(data)
+        var agentTypeCombo = document.getElementById('agent-type');
+        agentTypeCombo.innerHTML = '';
+        const patterns = Object.keys(data["patterns"]) ;  
+        var options = []; 
+        for (let pattern of patterns) {
+            options.push({value:pattern, text : data["patterns"][pattern]["text"]})
+        }
+        options.forEach(function(opt){
+            const option = document.createElement("option");
+            option.value = opt.value;
+            option.textContent = opt.text;
+            agentTypeCombo.appendChild(option);
+        });
+    }
+
+    // Set model combo values
+    function setModelComboValues() {
+        console.log("from setModelComboValues") ; 
+        console.log(data) ; 
+        var modelCombo = document.getElementById('model');
+        modelCombo.innerHTML = '';
+        var options = [];
+        for (let model of data["models"]) {
+            options.push({value:model, text:model})
+        }
+        options.forEach(function(opt){
+            const option = document.createElement("option");
+            option.value = opt.value;
+            option.textContent = opt.text;
+            modelCombo.appendChild(option);
+        });
+    }
+
+    // Set tools combo values
+    function setToolsComboValues() {
+        console.log("from setToolsComboValues") ; 
+        console.log(data) ; 
+        var toolsCombo = document.getElementById('tools-combo');
+        toolsCombo.innerHTML = '';
+        let options = [
+            {value: "", text: "Select a tool...", disabled: true, selected: true},
+        ];
+
+        for (let tool of data["tools"] ) {
+           options.push({value: tool["name"], text: tool["exterior_name"]}) 
+        }
+        
+        options.forEach(function(opt){
+            const option = document.createElement("option");
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if (opt.disabled) option.disabled = true;
+            if (opt.selected) option.selected = true;
+            toolsCombo.appendChild(option);
+        });
+    }
+
+    /**
+     * Show/hide the incremental count input under Model only when agent type is React
+     */
+    function updateReactCountVisibility() {
+        var agentType = document.getElementById("agent-type").value;
+        var reactNumGroup = document.getElementById("react-number-group");
+        if (agentType === "react") {
+            reactNumGroup.style.display = "flex";
+        } else {
+            reactNumGroup.style.display = "none";
+        }
+    }
+
+    /**
+     * Get HTML with textareas content based on current agent type
+     * Outputs a modern section with preview styles.
+     */
+    function getFormSummarizedHTML() { 
+        let agentType = document.getElementById("agent-type").value;
+        let html ;  
+        if (agentType == "react") {
+            let systemPrompt_full_str = document.getElementById("system-prompt").value.trim();
+
+            html = `
+                <div> 
+                    <div class="preview-field-label">System prompt</div>
+                    <div class="preview-field-content${systemPrompt_full_str ? "" : " preview-empty"}" id="react-sys-prompt-container"> 
+
+                          
+                    </div>                
+
+                </div>
+            `
+        }
+        else if (agentType == "tool_calling")  {
+
+            let systemPrompt_full_str = document.getElementById("system-prompt").value.trim();
+            let respGenInstruction = document.getElementById("response-generator-instructions").value.trim();
+
+            html = `
+                <div> 
+                    <div class="preview-field-label">Tool calling system prompt</div>
+                    <div class="preview-field-content${systemPrompt_full_str ? "" : " preview-empty"}" id="tool-calling-sys-prompt-container"> 
+
+                          
+                    </div>                
+                    <div class="preview-field-label">Generator prompt</div>
+
+                    <div class="preview-field-content${respGenInstruction ? "" : " preview-empty"}" id="generator-sys-prompt-container"> 
+
+                          
+                    </div>                
+
+                </div>
+            `
+        }   
+
+        return [agentType,html];
+    }
+
+    // Helper for HTML-escaping
+    function escapeHTML(str) {
+        return str.replace(/[&<>"']/g, function(m) {
+            switch(m) {
+                case '&': return '&amp;';
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '"': return '&quot;';
+                case "'": return '&#39;';
+            }
+        });
+    }
+
+    function onShowAllClick(event) {
+        var split = document.getElementById("split-container");
+        var right = document.getElementById("split-right");
+        var content = document.getElementById("split-right-inner-content");
+        // Make right pane visible side-by-side with form
+        split.classList.add("split-active");
+        right.setAttribute("aria-hidden", "false");
+
+        var selectedToolsCurrent = selectedTools ? selectedTools.slice() : [];
+        const used_tools = data["tools"].filter(obj => selectedToolsCurrent.includes(obj.name)) ; 
+        let used_tools_str = "" ; 
+        for (let used_tool of used_tools) {
+            used_tools_str += used_tool["name"]  + used_tool["description"] ;  
+            used_tools_str += "\n\n" ; 
+        }
+        console.log("Selected tools at show all:", selectedToolsCurrent);
+        setTimeout(() => {
+            let right_side_form = getFormSummarizedHTML() ; 
+            if (right_side_form[0] == "react"){
+                console.log("we are in the case of of react") ; 
+                content.innerHTML = right_side_form[1];
+                let sys_prompt_container = document.getElementById("react-sys-prompt-container") ; 
+
+                sys_prompt_container.textContent = data["patterns"]["react"]["prompt"].replace("{tools}",used_tools_str)
+                
+
+
+            }
+            else if (right_side_form[0] == "tool_calling") {
+                console.log("printing data")  ; 
+                console.log(data) ; 
+                let systemPrompt_full_str = document.getElementById("system-prompt").value.trim();
+                let respGenInstruction = document.getElementById("response-generator-instructions").value.trim();
+                // console.log("we are in the case of tool calling") ; 
+                content.innerHTML = right_side_form[1];
+                let sys_prompt_container = document.getElementById("tool-calling-sys-prompt-container") ; 
+                sys_prompt_container.textContent = data["patterns"]["tool_calling"]["prompts"]["prompt_tool_call"].replace("{system_prompt}",systemPrompt_full_str).replace("{tools}",used_tools_str)  ;
+                let generator_container = document.getElementById("generator-sys-prompt-container") ; 
+                generator_container.textContent =  data["patterns"]["tool_calling"]["prompts"]["prompt_generator"].replace("{more_intstruction}",respGenInstruction); 
+                
+                // console.log("sys_prompt_container") ; 
+                // console.log(sys_prompt_container) ; 
+                // console.log("generator_container") ; 
+                // console.log(generator_container) ; 
+
+            }
+
+        }, 250); // slight delay for effect
+        // Focus for a11y
+        setTimeout(() => {
+            right.querySelector('.close-split-btn').focus();
+        }, 450);
+    }
+
+    function closeSplitRight() {
+        var split = document.getElementById("split-container");
+        var right = document.getElementById("split-right");
+        split.classList.remove("split-active");
+        right.setAttribute("aria-hidden", "true");
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // ---- Agent Config Form logic ----
+        const toolsCombo = document.getElementById("tools-combo");
+        const selectedToolsList = document.getElementById("selected-tools-list");
+        // Use the hoisted selectedTools!
+        // let selectedTools = [];
+
+        function renderSelectedTools() {
+            selectedToolsList.innerHTML = "";
+            if (selectedTools.length === 0) {
+                selectedToolsList.style.minHeight = "2.1em";
+            }
+            selectedTools.forEach(function(tool, idx) {
+                const chip = document.createElement("div");
+                chip.className = "tool-chip";
+                chip.textContent = capitalize(tool);
+
+                const removeBtn = document.createElement("button");
+                removeBtn.className = "remove-tool-btn";
+                removeBtn.type = "button";
+                removeBtn.title = "Remove";
+                removeBtn.innerHTML = "&times;";
+                removeBtn.onclick = function() {
+                    selectedTools.splice(idx, 1);
+                    renderSelectedTools();
+                };
+                chip.appendChild(removeBtn);
+                selectedToolsList.appendChild(chip);
+            });
+        }
+
+        function capitalize(txt) {
+            if (!txt) return '';
+            if (txt.toLowerCase() === "tavily search") return "Tavily Search";
+            if (txt.toLowerCase() === "calculate") return "Calculate";
+            return txt.charAt(0).toUpperCase() + txt.slice(1);
+        }
+
+        toolsCombo.addEventListener("change", function() {
+            const value = toolsCombo.value;
+            if (value && !selectedTools.includes(value)) {
+                selectedTools.push(value);
+                renderSelectedTools();
+            }
+            // Reset dropdown to "Select..." after selection
+            toolsCombo.selectedIndex = 0;
+        });
+
+        renderSelectedTools();
+
+        // Show/hide the response generator instructions textarea based on agent type
+        const agentTypeSelect = document.getElementById("agent-type");
+        const instructionsGroup = document.getElementById("response-generator-instructions-group");
+
+        // --- show/hide the number input for React ---
+        function updateInstructionsVisibility() {
+            if (agentTypeSelect.value === "tool_calling") {
+                instructionsGroup.style.display = "";
+                // Force form and form main to allow scrolling if not fitting in viewport
+                document.querySelector('.agent-config-form').style.overflowY = 'auto';
+                document.querySelector('.single-agent-form-main').style.overflowY = 'auto';
+                // On mobile (or small screens), maximize height
+                if (window.innerWidth <= 940) {
+                    document.querySelector('.agent-config-form').style.maxHeight = '96vh';
+                    document.querySelector('.single-agent-form-main').style.maxHeight = '99vh';
+                } else {
+                    document.querySelector('.agent-config-form').style.maxHeight = '100vh';
+                    document.querySelector('.single-agent-form-main').style.maxHeight = '100vh';
+                }
+            } else {
+                instructionsGroup.style.display = "none";
+                // Reset scroll/maxHeight to default
+                document.querySelector('.agent-config-form').style.overflowY = '';
+                document.querySelector('.agent-config-form').style.maxHeight = '';
+                document.querySelector('.single-agent-form-main').style.overflowY = '';
+                document.querySelector('.single-agent-form-main').style.maxHeight = '';
+            }
+            // Show/hide the count input field under model
+            updateReactCountVisibility();
+        }
+
+        // Initial check
+        updateInstructionsVisibility();
+
+        // When the agent type changes, clear relevant inputs
+        agentTypeSelect.addEventListener("change", function() {
+            // Clear form inputs on type change
+            document.getElementById("agent-name").value = "";
+            document.getElementById("system-prompt").value = "";
+            document.getElementById("response-generator-instructions").value = "";
+            // Reset tools
+            selectedTools.length = 0;
+            renderSelectedTools();
+            // Reset count if present
+            let reactNumber = document.getElementById("react-number");
+            if(reactNumber) reactNumber.value = "10";
+            // Reset model selection to first option if needed
+            let modelSelect = document.getElementById("model");
+            if(modelSelect) modelSelect.selectedIndex = 0;
+            // Reset tools combo
+            let toolsComboEl = document.getElementById("tools-combo");
+            if (toolsComboEl) toolsComboEl.selectedIndex = 0;
+
+            updateInstructionsVisibility();
+        });
+
+        // Split right: close btn
+        document.getElementById("close-split-btn").addEventListener("click", closeSplitRight);
+
+        // ESC key closes right panel
+        document.addEventListener("keydown", function(e){
+            if (e.key === "Escape") {
+                if (document.getElementById("split-container").classList.contains("split-active")) {
+                    closeSplitRight();
+                }
+            }
+        });
+        // Click/tap outside on mobile closes panel
+        document.getElementById("split-right").addEventListener("click", function(ev){
+            // On mobile, close when clicking empty area (not content)
+            if (window.innerWidth <= 900 && ev.target === this) closeSplitRight();
+        });
+    });
+</script>
