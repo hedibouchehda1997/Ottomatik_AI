@@ -41,8 +41,6 @@ def test_simple_agent_with_streaming() :
         response = simple_agent("is it still woth it to invest time learning programming in the \
                      era of the AI") 
 
-
-
         if not isinstance(response,str) : 
             for chunk in response : 
                 delta = getattr(chunk.choices[0].delta, 'content', None)

@@ -50,10 +50,10 @@ class LLMCall :
         self.token_counter = TokenCounter(model=self.llm_data_loader.model,modal_type=self.llm_data_loader.modal_type,logger=self.logger)
         if self.llm_data_loader.modal_type == "text-to-text" : 
             if self.llm_data_loader.model.startswith("gpt") : 
-                self.model_client = GPTCall(model_specs={
-                                                "api_key" : self.llm_data_loader.api_key, 
-                                                "model" : self.llm_data_loader.model, 
-                                                **self.llm_data_loader.llm_spec},
+                self.model_specs = {"api_key" : self.llm_data_loader.api_key, 
+                                    "model" : self.llm_data_loader.model, 
+                                    **self.llm_data_loader.llm_spec}
+                self.model_client = GPTCall(model_specs=self.model_specs,
                                                 token_counter = self.token_counter, 
                                                 logger = logger )
                 print("GPTCall created correctly ")
@@ -61,6 +61,14 @@ class LLMCall :
 
     def __call__(self,messages:List[Dict]) : 
         return self.model_client(messages)
+
+    def is_streaming_behaviour_set(self) -> bool : 
+        if "stream" in self.model_specs : 
+            return True 
+        else : 
+            return False
+
+    
         
 
 

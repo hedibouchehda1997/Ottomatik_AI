@@ -5,6 +5,8 @@ from chat_bot_session_ui.src.tools.web_search_tools import TavilySearchTool
 from chat_bot_session_ui.src.utils.custom_logger import Logger
 from chat_bot_session_ui.src.models.llm_models import TokenCounter, LLMDataLoader, LLMCall
 from chat_bot_session_ui.src.utils.env_utils import load_env
+from chat_bot_session_ui.src.memories.simple_memory import SimpleMemory
+from chat_bot_session_ui.src.agents.patterns.simple_agent import SimpleAgent
 import os
 
 
@@ -29,8 +31,11 @@ class AgentFactory :
         if self.agent_details["model"].startswith("gpt") : 
             with load_env(["OPENAI_API_KEY"])   : 
                 self.logger = Logger("test.txt")
+                key = os.environ.get("OPENAI_API_KEY") 
+                print("the api key ")
+                print(key)
                 self.llm_data_loader = LLMDataLoader(model=self.agent_details["model"],
-                                            api_key=os.environ.get("OPENAI_API_KEY") , 
+                                            api_key=key , 
                                             llm_spec = {"stream":True}) 
                 self.llm_call = LLMCall(llm_data_loader=self.llm_data_loader,  
                                         logger=self.logger)
@@ -39,9 +44,9 @@ class AgentFactory :
         print(f"agent type : {self.agent_details["agent_type"]}")
         print("agent details from agent factory ")
         print(self.agent_details)
-        self.fetch_tools(self.agent_details["tools"])
         self.build_llm_model()
         if self.agent_details["agent_type"] == "react" : 
+            self.fetch_tools(self.agent_details["tools"])
             self.agent = ReactAgent(llm_call=self.llm_call, 
                                     tools=self.tools, 
                                     logger = self.logger)
@@ -49,3 +54,15 @@ class AgentFactory :
             print("we're building a react agent") 
         elif self.agent_details["agent_type"] == "tool_calling" : 
             print("we're building a tool calling agent")
+        elif self.agent_details["agent_type"] == "chat_bot" : 
+            print("from build agent, agent details")
+            print(self.agent_details)
+            simple_memory = SimpleMemory()
+
+            simple_agent = SimpleAgent(llm_call=self.llm_call, logger=self.logger, 
+                                        simple_memory=simple_memory, system_prompt=self.agent_details["system_prompt"],
+                                        name=self.agent_details["agent_name"])  
+
+            return simple_agent
+
+            print("we're building a simple chat bot")

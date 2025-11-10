@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatGPT Modern Frontend</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary: #6C47FF;
+      --primary-light: #ede7ff;
+      --background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      --user-bg: linear-gradient(135deg, #6C47FF 0%, #8F6BFF 100%);
+      --user-color: #fff;
+      --bot-bg: rgba(255,255,255,0.08);
+      --bot-color: #fff;
+      --border-radius: 22px;
+      --input-bg: rgba(30,32,38,0.95);
+      --input-border: #6C47FF;
+      --shadow: 0 8px 32px 0 rgba(108,71,255,0.18);
+      --glass-blur: blur(12px);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-width: 100vw;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    body {
+      min-height: 100vh;
+      height: 100vh;
+      width: 100vw;
+      min-width: 100vw;
+      max-width: 100vw;
+      background: var(--background);
+      font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .chat-outer {
+      height: 100vh;
+      width: 100vw;
+      min-width: 100vw;
+      max-width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      background: var(--background);
+      position: relative;
+    }
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+      width: 100vw;
+      min-width: 100vw;
+      max-width: 100vw;
+      margin: 0;
+      background: rgba(30,32,38,0.85);
+      box-shadow: var(--shadow);
+      border-radius: 0;
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: var(--glass-blur);
+      border: 1.5px solid rgba(108,71,255,0.12);
+    }
+    /* Logger button styles */
+    .logger-btn-container {
+      position: absolute;
+      top: 18px;
+      left: 24px; /* Move to left */
+      right: auto;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+    }
+    .logger-btn {
+      background: linear-gradient(135deg, #6C47FF 0%, #8F6BFF 100%);
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      padding: 8px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 12px 0 rgba(108,71,255,0.18);
+      transition: background 0.2s, box-shadow 0.2s;
+      outline: none;
+      border: 2px solid transparent;
+      letter-spacing: 0.03em;
+    }
+    .logger-btn:active, .logger-btn:focus {
+      border: 2px solid #fff;
+    }
+    @media (max-width: 700px) {
+      .logger-btn-container {
+        top: 10px;
+        left: 8px;
+        right: auto;
+      }
+      .logger-btn {
+        padding: 6px 14px;
+        font-size: 0.95rem;
+      }
+    }
+    /* Remove chat-header entirely */
+
+    .chat-messages {
+      flex: 1 1 0;
+      padding: 32px 24px 16px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: transparent;
+      transition: justify-content 0.3s;
+      scrollbar-width: thin;
+      scrollbar-color: #6C47FF #232526;
+      width: 100vw;
+      min-width: 100vw;
+      max-width: 100vw;
+      box-sizing: border-box;
+    }
+    .chat-messages::-webkit-scrollbar {
+      width: 8px;
+      background: transparent;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #6C47FF;
+      border-radius: 8px;
+    }
+    .message {
+      max-width: 80%;
+      padding: 18px 22px;
+      border-radius: var(--border-radius);
+      font-size: 1.13rem;
+      line-height: 1.6;
+      box-shadow: 0 2px 12px 0 rgba(108,71,255,0.10);
+      word-break: break-word;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: fadeIn 0.3s;
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255,255,255,0.08);
+      /* Remove background for all messages */
+      background: none !important;
+    }
+    .message.user {
+      margin-left: auto;
+      /* Remove background for user message */
+      /* background: var(--user-bg); */
+      color: var(--user-color);
+      align-self: flex-end;
+      border-bottom-right-radius: 8px;
+      border-top-right-radius: 8px;
+      border-top-left-radius: 22px;
+      border-bottom-left-radius: 22px;
+      box-shadow: 0 2px 16px 0 rgba(108,71,255,0.18);
+      background: none !important;
+    }
+    .message.bot {
+      margin-right: auto;
+      /* Remove background for bot message */
+      /* background: var(--bot-bg); */
+      color: var(--bot-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 8px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 22px;
+      border-bottom-right-radius: 22px;
+      box-shadow: 0 2px 16px 0 rgba(255,255,255,0.08);
+      background: none !important;
+    }
+    .sender {
+      font-size: 0.92rem;
+      font-weight: 600;
+      opacity: 0.5;
+      margin-bottom: 2px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      display: none; /* Hide sender label */
+    }
+    .chat-input-area {
+      display: flex;
+      align-items: center;
+      padding: 12px 18px;
+      background: var(--input-bg);
+      border-top: 1.5px solid rgba(108,71,255,0.10);
+      gap: 10px;
+      flex-shrink: 0;
+      width: 100%;
+      min-width: 0;
+      max-width: 100vw;
+      box-sizing: border-box;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: 0 0px 24px 0 rgba(108,71,255,0.07);
+      transition: width 0.3s, min-width 0.3s, max-width 0.3s, left 0.3s, top 0.3s, transform 0.3s;
+      position: relative;
+    }
+
+    .chat-input {
+      flex: 1 1 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 1.5px solid transparent;
+      font-size: 1.08rem;
+      outline: none;
+      background: rgba(255,255,255,0.07);
+      color: #fff;
+      transition: border 0.2s, background 0.2s;
+      resize: none;
+      min-height: 32px;
+      max-height: 48px; /* Reduce max height to prevent covering send button */
+      font-family: inherit;
+      box-shadow: 0 1px 8px 0 rgba(108,71,255,0.04);
+      overflow-y: auto;
+    }
+    .chat-input:focus {
+      border-color: var(--input-border);
+      background: rgba(255,255,255,0.13);
+    }
+    .send-btn {
+      background: linear-gradient(135deg, #6C47FF 0%, #8F6BFF 100%);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      padding: 0;
+      width: 44px;
+      height: 44px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 12px 0 rgba(108,71,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+      border: 2px solid transparent;
+      flex-shrink: 0;
+    }
+    .send-btn:disabled {
+      background: #b6a7fe;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .send-btn:active, .send-btn:focus {
+      border: 2px solid #fff;
+    }
+    .send-btn::after {
+      content: '';
+    }
+    .send-btn svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    /* Center input when no messages */
+    .empty .chat-messages {
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      min-height: 0;
+      padding: 0;
+      background: transparent;
+    }
+    .empty .chat-input-area {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 4px 24px 0 rgba(108,71,255,0.10);
+      width: 100%;
+      min-width: 0;
+      max-width: 800px;
+      border-radius: 18px;
+      background: var(--input-bg);
+      border-top: none;
+      z-index: 2;
+      justify-content: center;
+    }
+    .empty .chat-messages {
+      min-height: 0;
+      height: 100vh;
+      width: 100vw;
+      min-width: 100vw;
+      max-width: 100vw;
+      background: transparent;
+    }
+    .empty .chat-input {
+      background: rgba(255,255,255,0.07);
+      max-height: 80px; /* Allow more height in empty state */
+    }
+    /* Responsive: input in center should not be too wide on mobile */
+    @media (max-width: 700px) {
+      .chat-container {
+        max-width: 100vw;
+        min-width: 100vw;
+        border-radius: 0;
+        height: 100vh;
+      }
+      .chat-messages {
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+      .chat-input-area {
+        padding-left: 6px;
+        padding-right: 6px;
+        border-radius: 0 0 0 0;
+      }
+      .empty .chat-input-area {
+        max-width: 96vw;
+        min-width: 0;
+        width: 100%;
+        border-radius: 12px;
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+    }
+    /* Typing indicator animation */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+      min-width: 36px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #b6a7fe;
+      opacity: 0.7;
+      animation: typing-bounce 1.2s infinite both;
+      display: inline-block;
+    }
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes typing-bounce {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+      40% { transform: scale(1.2); opacity: 1; }
+    }
+  </style>
+</head>
+<body >
+  <div class="chat-outer" id="chat-outer">
+    <!-- Logger button moved to top left -->
+    <div class="logger-btn-container">
+      <button class="logger-btn" id="logger-btn" type="button">Logger</button>
+    </div>
+    <div class="chat-container" id="chat-container">
+      <!-- Removed chat-header for a cleaner, modern look -->
+      <div class="chat-messages" id="chat-messages">
+        <!-- Messages will appear here -->
+      </div>
+      <form class="chat-input-area" id="chat-form" autocomplete="off">
+        <textarea class="chat-input" id="chat-input" rows="1" placeholder="Type your message..." required></textarea>
+        <button class="send-btn" id="send-btn" type="submit" disabled title="Send">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M3 20L21 12L3 4V10L17 12L3 14V20Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+  <script>
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chatContainer = document.getElementById('chat-container');
+    const chatOuter = document.getElementById('chat-outer');
+    const loggerBtn = document.getElementById('logger-btn');
+
+    // Logger button click handler
+    if (loggerBtn) {
+        loggerBtn.addEventListener('click', async function() {
+          window.location.href = '/logger' ;
+
+          // try {
+          //   const response = await fetch('http://localhost:3030/logger', { method: 'GET' }); 
+          //   if (!response.ok) {
+          //   alert('Logger request failed');
+          // }  else
+          //   alert('Logger endpoint called successfully');    
+          // }
+          // catch {
+          //   alert('Logger request failed');
+          // }
+        })
+
+    }
+    //     try {
+    //       const response = await fetch('http://localhost:3030/logger', { method: 'GET' });
+ 
+    //     } catch (err) {
+    //       alert('Logger request failed');
+    //     }
+    //   });
+    // }>
+
+    // Track if waiting for bot response
+    let waitingForBot = false;
+
+    // Helper: check if chat is empty
+    function updateEmptyState() {
+      // Only count .message elements
+      const hasMessages = chatMessages.querySelector('.message') !== null;
+      if (!hasMessages) {
+        chatContainer.classList.add('empty');
+      } else {
+        chatContainer.classList.remove('empty');
+      }
+    }
+
+    // Enable/disable send button
+    chatInput.addEventListener('input', () => {
+      updateSendBtnState();
+      autoResize(chatInput);
+    });
+
+    function updateSendBtnState() {
+      // Only enable if not waiting for bot and input is not empty
+      sendBtn.disabled = waitingForBot || chatInput.value.trim().length === 0;
+    }
+
+    // Auto-resize textarea
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      // Use 48px max-height for non-empty, 80px for empty state
+      let maxHeight = chatContainer.classList.contains('empty') ? 80 : 48;
+      textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
+    }
+
+    // Add message to chat
+    function addMessage(sender, text, content_div=undefined) {
+      if (content_div == undefined) {
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + (sender === 'You' ? 'user' : 'bot');
+        // Do not add sender label
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'content';
+        contentDiv.textContent = text;
+        msgDiv.appendChild(contentDiv);
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        updateEmptyState();
+        return contentDiv ; 
+      }else {
+        content_div.textContent += "\n" + text ; 
+        return content_div ;
+      }
+    }
+
+    // Add typing indicator for bot
+    function showTypingIndicator() {
+      // Remove any existing typing indicator first
+      removeTypingIndicator();
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message bot typing-message';
+      // Do not add sender label
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'typing-dot';
+        indicator.appendChild(dot);
+      }
+      typingDiv.appendChild(indicator);
+      chatMessages.appendChild(typingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      updateEmptyState();
+    }
+
+    function removeTypingIndicator() {
+      const typingMsg = chatMessages.querySelector('.typing-message');
+      if (typingMsg) {
+        typingMsg.remove();
+        updateEmptyState();
+      }
+    }
+
+    // Handle form submit
+    chatForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (waitingForBot) return; // Prevent sending while waiting for bot
+      const userMsg = chatInput.value.trim();
+      if (!userMsg) return;
+      addMessage('You', userMsg);
+      showTypingIndicator();
+
+      chatInput.value = '';
+      waitingForBot = true;
+      updateSendBtnState();
+      autoResize(chatInput);
+
+      try {
+        const response = await fetch("http://localhost:3030/llm_response",{
+                          method : 'POST',
+                          headers : {
+                            'Content-Type':"application/json"
+                          }, 
+                          body : JSON.stringify({
+                            message : userMsg 
+                          })
+                        })
+        if (!response.ok) {
+          throw new Error("network response was not ok")
+        }
+
+        console.log("window.backendData") ; 
+        console.log(window.backendData)
+
+        if (window.backendData.type === "chatbot" || window.backendData.type==="toolCallingBot") {
+          console.log("handeling the chatbot response ") ;
+          let data = await response.json() ;
+          console.log("printing the llm response ") 
+          console.log(data.response) 
+          removeTypingIndicator();
+          addMessage('ChatGPT', data.response);
+         waitingForBot = false;
+          updateSendBtnState();
+        } else if (window.backendData.type == "react")
+        {
+          console.log("zebi zebi")
+          const reader = response.body.getReader() ; 
+          const decoder = new TextDecoder() ; 
+          let tst_str = ''
+          let message_container = undefined ; 
+          removeTypingIndicator();
+          while (true) {
+            const {done,value} = await reader.read() ; 
+            if (done) {
+             message_container.textContent = value_str ; 
+             break  ;   
+            }
+            value_str = decoder.decode(value) ; 
+            console.log("value str : ") 
+            console.log(value_str) ;
+            message_container =  addMessage('ChatGPT', value_str ,message_container);
+          }  
+
+          
+          waitingForBot = false;
+          updateSendBtnState();
+        }
+      } catch(error) {
+        alert("Error in the post request")
+      }
+    });
+
+    // Allow Enter to send, Shift+Enter for newline
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!sendBtn.disabled) {
+          chatForm.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+        }
+      }
+    });
+
+    // Initial focus and empty state
+    window.onload = () => {
+      let agent_type_dict = window.backendData 
+      console.log("agent type ") 
+      console.log(agent_type_dict)
+      chatInput.focus();
+      updateEmptyState();
+      updateSendBtnState();
+      autoResize(chatInput);
+    };
+  </script>
+</body>
+</html>

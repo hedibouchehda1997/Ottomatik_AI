@@ -11,7 +11,9 @@ from chat_bot_session_ui.src.utils.tools_loader import ToolsLoader
 from chat_bot_session_ui.src.utils.agent_factory import AgentFactory
 from chat_bot_session_ui.src.tools.web_search_tools import TavilySearchTool
 from chat_bot_session_ui.src.utils.test_set_handler import TestSetHandler
+from chat_bot_session_ui.src.utils.session_manager import SessionManager
 from fastapi.staticfiles import StaticFiles
+from pymongo import MongoClient, errors
 import asyncio
 import os 
 from pydantic import BaseModel
@@ -27,6 +29,20 @@ templates_path = os.path.join(base_dir, "templates")
 templates = Jinja2Templates(directory=templates_path)
 tools_loader = ToolsLoader() 
 tools_loader.set_tools([TavilySearchTool]) 
+
+
+session_manager = SessionManager(user_id="123")
+
+try:
+    client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=5000)
+    
+    # The ping command is cheap and confirms connection
+    client.admin.command('ping')
+    print("Connected to MongoDB successfully!")
+    
+except errors.ServerSelectionTimeoutError as err:
+    print("Could not connect to MongoDB:", err)
+
 
 
 agent_factory = AgentFactory()
@@ -48,11 +64,17 @@ class ReactDetails(BaseModel) :
 
 class ToolCallingDetails(BaseModel) : 
     agent_type : str 
-    agent_type : str 
+    agent_name : str
     instruction_for_response_generator : str 
     model : str 
     system_prompt : str 
     tools : List[str] 
+
+class ChatBotDetails(BaseModel) :
+    agent_type : str 
+    agent_name : str 
+    model : str 
+    system_prompt : str
 
 
 class TestSet(BaseModel) : 
@@ -65,12 +87,6 @@ class TestRow(BaseModel) :
 class TestFullTable(BaseModel) : 
     table_name : str 
     tests : List[Dict]
-
-
-
-
-
-
 
 
 
@@ -89,6 +105,8 @@ def get_table_page(request : Request) :
     agent_details = agent_factory.get_agent_details()
     print("from chat endpoint ") 
     print(agent_details)
+    print("the type of created agent") 
+    print(type(session_manager.agent))
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "chatbot.html")
@@ -100,14 +118,10 @@ def get_table_page(request : Request) :
 
 @app.get("/tests",response_class=HTMLResponse)
 def get_chat_page(request : Request) : 
-    data_2_send = {
-        "user" : "John Doe", 
-        "age" : 30 , 
-        "skills" : "python"
-    }
+    agent_details = agent_factory.get_agent_details() 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "table.html")
-    return templates.TemplateResponse("table.html", {"request":request,"data": data_2_send})
+    return templates.TemplateResponse("table.html", {"request":request,"data": agent_details})
 
     # if os.path.exists(html_path):
     #     with open(html_path, "r", encoding="utf-8") as f:
@@ -120,9 +134,10 @@ def get_config_page(request : Request) :
         "age" : 30 , 
         "skills" : "python"
     }
+    agent_details = agent_factory.get_agent_details()
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "agent_config.html")
-    return templates.TemplateResponse("agent_config.html", {"request":request,"data": data_2_send})
+    return templates.TemplateResponse("agent_config.html", {"request":request,"data": agent_details})
 
 @app.get("/new_agent",response_class=HTMLResponse) 
 def get_new_agent_config_page(request : Request) : 
@@ -138,7 +153,10 @@ def get_new_agent_config_page(request : Request) :
                     "prompt_tool_call":tool_calling_sys_prompt , 
                     "prompt_generator" : tool_calling_response_generator
                     }
-                } 
+                }, 
+            "chat_bot" : {
+                "text" : "Simple ChatBot"
+            }
         }, 
         "tools" : tools_description_list , 
         "models" : ["gpt-3.5-turbo","gpt-4"]
@@ -154,10 +172,14 @@ def get_new_agent_config_page(request : Request) :
 
 @app.post("/set_agent") 
 async def set_agent(request:Request,
-                    agent_details:ReactDetails|ToolCallingDetails) : 
+                    agent_details:ReactDetails|ToolCallingDetails|ChatBotDetails) : 
     print("setting agent endpoint") ; 
-    agent_factory.set_agent_details(agent_details.dict()) 
-    agent_factory.build_agent()
+    print(f"agent_details") 
+    print(agent_details.dict())
+    agent_factory.set_agent_details(agent_details.dict())
+    agent = agent_factory.build_agent()
+    
+    session_manager.set_agent(agent)
     return {"response":'ok'}
 
 
@@ -177,13 +199,20 @@ async def build_new_test_set(request : Request,
 
 @app.get("/response") 
 async def llm_response(prompt:str) : 
-    print("user query",prompt)
+    print("last streamed response ")
+    session_manager.agent.simple_memory.dump()
     async def token_generator() : 
-        async for chunk in gpt_call(prompt): 
-            token = chunk.content
-            yield token 
-            await asyncio.sleep(0)
-            print(token,end="")
+        session_manager.last_streamed_response= ""
+        for chunk in session_manager.agent(prompt): 
+            delta = getattr(chunk.choices[0].delta, 'content', None)
+            if delta : 
+                session_manager.last_streamed_response += delta
+                yield delta 
+        session_manager.agent.add_query_response(user_query=prompt, 
+                                                 ai_response=session_manager.last_streamed_response)
         yield "\n [DONE]"
+
+    print("\n\n\n\n\n")
+
 
     return StreamingResponse(token_generator(),media_type="text/plain")

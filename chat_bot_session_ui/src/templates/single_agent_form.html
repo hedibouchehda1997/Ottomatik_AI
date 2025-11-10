@@ -534,7 +534,7 @@
                     <label for="system-prompt" class="field-label">System Prompt</label>
                     <textarea id="system-prompt" class="field-textarea" placeholder="Enter system prompt here..."></textarea>
                 </div>
-                <div class="field-group tools-select-group">
+                <div class="field-group tools-select-group" id="tools-select-group">
                     <label for="tools-combo" class="field-label">Tools</label>
                     <select id="tools-combo" class="field-select"></select>
                     <div class="selected-tools-list" id="selected-tools-list">
@@ -596,6 +596,9 @@
         setToolsComboValues();
 
         updateReactCountVisibility();
+
+        // Hide tools section if Single ChatBot is selected on load
+        updateToolsVisibility();
     });
 
     function OnApplyClicked() {
@@ -615,11 +618,16 @@
 
         // Validation: System Prompt and Tools required
         const systemPromptValue = document.getElementById("system-prompt").value.trim();
+
+        // Only require tools if tools section is visible
+        const toolsSection = document.getElementById("tools-select-group");
         if (!systemPromptValue) {
             alert("System Prompt cannot be empty.");
             return;
         }
-        if (!selectedTools || selectedTools.length === 0) {
+        // Only validate tools if not in single_chatbot mode
+        let currentAgentType = document.getElementById("agent-type").value;
+        if (toolsSection.style.display !== "none" && (!selectedTools || selectedTools.length === 0)) {
             alert("Please select at least one Tool.");
             return;
         }
@@ -628,7 +636,6 @@
         formData[getLabelText("agent-type")] = document.getElementById("agent-type").value;
         // Add Agent name to formData
         formData[getLabelText("agent-name")] = document.getElementById("agent-name").value;
-        formData[getLabelText("tools-combo")] = selectedTools && selectedTools.length > 0 ? selectedTools.slice() : [];
         console.log("from on aplly ") ; 
         // console.log(document.getElementById("agent-type").value) ; 
         if (document.getElementById("agent-type").value == "tool_calling") {
@@ -639,20 +646,27 @@
                 let full_generator_prompt = data["patterns"]["tool_calling"]["prompts"]["prompt_tool_call"].replace("{system_prompt}",systemPromptValue) ; 
                 formData[getLabelText("response-generator-instructions")] = generator_instructions; 
                 formData[getLabelText("system-prompt")] = full_generator_prompt ;       
+                formData[getLabelText("tools-combo")] = selectedTools && selectedTools.length > 0 ? selectedTools.slice() : [];
+
             }
             
         } else if (document.getElementById("agent-type").value == "react") {
             console.log("we are in the case of react agent !!!!!") ; 
+            formData[getLabelText("tools-combo")] = selectedTools && selectedTools.length > 0 ? selectedTools.slice() : [];
             formData[getLabelText("system-prompt")] = systemPromptValue;
-                    let reactNumberGroup = document.getElementById("react-number-group");
+            let reactNumberGroup = document.getElementById("react-number-group");
             if (reactNumberGroup && reactNumberGroup.style.display !== "none") {
                 formData[getLabelText("react-number")] = document.getElementById("react-number").value;
             }
 
+        } else if (document.getElementById("agent-type").value == "chat_bot") {
+            console.log("we are in case of chatbot from apllyclicked") ; 
+            formData[getLabelText("system-prompt")] =  document.getElementById("system-prompt").value.trim();
+
         }
         formData[getLabelText("model")] = document.getElementById("model").value;
         console.log("Form Data:", formData);
-        fetch ("http://localhost:3030/set_agent" , {
+        fetch ("http://127.0.0.1:3030/set_agent" , {
             method : 'POST' , 
             headers : {
                 'Content-Type': 'application/json' , 
@@ -740,6 +754,22 @@
     }
 
     /**
+     * Show/hide the tools section if agent type is 'single_chatbot'
+     */
+    function updateToolsVisibility() {
+        console.log("updateToolsVisibility")
+        var agentType = document.getElementById("agent-type").value;
+        console.log("agent type")
+        console.log(agentType)
+        var toolsGroup = document.getElementById("tools-select-group");
+        if (agentType === "chat_bot") {
+            toolsGroup.style.display = "none";
+        } else {
+            toolsGroup.style.display = "";
+        }
+    }
+
+    /**
      * Get HTML with textareas content based on current agent type
      * Outputs a modern section with preview styles.
      */
@@ -782,6 +812,18 @@
                 </div>
             `
         }   
+        else if (agentType == "chat_bot") {
+            console.log("we are in chatbot case from summuraize") ; 
+            let systemPrompt_full_str = document.getElementById("system-prompt").value.trim();
+            html = `
+            <div class="preview-field-label">ChatBot system prompt</div>
+            <div class="preview-field-content${systemPrompt_full_str ? "" : " preview-empty"}" id="chat-bot-sys-prompt-container"> 
+            
+
+
+            </div>
+            `
+        }
 
         return [agentType,html];
     }
@@ -821,11 +863,8 @@
                 console.log("we are in the case of of react") ; 
                 content.innerHTML = right_side_form[1];
                 let sys_prompt_container = document.getElementById("react-sys-prompt-container") ; 
-
                 sys_prompt_container.textContent = data["patterns"]["react"]["prompt"].replace("{tools}",used_tools_str)
-                
-
-
+            
             }
             else if (right_side_form[0] == "tool_calling") {
                 console.log("printing data")  ; 
@@ -838,12 +877,13 @@
                 sys_prompt_container.textContent = data["patterns"]["tool_calling"]["prompts"]["prompt_tool_call"].replace("{system_prompt}",systemPrompt_full_str).replace("{tools}",used_tools_str)  ;
                 let generator_container = document.getElementById("generator-sys-prompt-container") ; 
                 generator_container.textContent =  data["patterns"]["tool_calling"]["prompts"]["prompt_generator"].replace("{more_intstruction}",respGenInstruction); 
-                
-                // console.log("sys_prompt_container") ; 
-                // console.log(sys_prompt_container) ; 
-                // console.log("generator_container") ; 
-                // console.log(generator_container) ; 
 
+            }
+            else if (right_side_form[0] == "chat_bot") {
+                content.innerHTML = right_side_form[1];            
+                let systemPrompt_full_str = document.getElementById("system-prompt").value.trim();
+                let sys_prompt_container = document.getElementById("chat-bot-sys-prompt-container") ; 
+                sys_prompt_container.textContent = systemPrompt_full_str ; 
             }
 
         }, 250); // slight delay for effect
@@ -939,6 +979,9 @@
             }
             // Show/hide the count input field under model
             updateReactCountVisibility();
+
+            // Also show/hide tools section when agent type changes
+            updateToolsVisibility();
         }
 
         // Initial check

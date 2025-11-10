@@ -305,11 +305,14 @@
     }
 </style>
 
+<script id="data-json" type="application/json">
+        {{ data | tojson }}
+</script>
+
 <div class="app-root-flex">
     <nav class="sidebar-modern" id="app-sidebar">
-        <div class="sidebar-brand">
+        <div class="sidebar-brand" id="sidebar-brand">
             <span style="font-size:1.45em;filter:drop-shadow(0 2px 8px #94bdf854);">🤖</span>
-            <span>Assistant Suite</span>
         </div>
         <div class="sidebar-nav">
             <a href="#" class="sidebar-nav-link" data-section="tests">
@@ -375,6 +378,13 @@
     </main>
 </div>
 <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            data = JSON.parse(document.getElementById("data-json").textContent);
+            console.log(data)
+            let assistant_div = document.getElementById("sidebar-brand") ; 
+            const assistant_name = document.createTextNode(data["agent_name"]) ; 
+            assistant_div.appendChild(assistant_name) ; 
+        });
     // Sidebar section logging (unchanged)
     function logSidebarSectionName(node) {
         let text = "";

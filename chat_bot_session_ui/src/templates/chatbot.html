@@ -132,6 +132,38 @@
         outline: none;
     }
 
+    /* Typing Indicator Dots */
+    .typing-indicator {
+        display: inline-flex;
+        align-items: center;
+        height: 1.44em;
+        margin-left: 0.42em;
+        vertical-align: middle;
+        /* place it near the emoji */
+    }
+    .typing-dot {
+        display: inline-block;
+        width: 0.53em;
+        height: 0.53em;
+        margin-right: 0.22em;
+        border-radius: 50%;
+        background: #a7bad4;
+        opacity: 0.65;
+        animation: typing-bounce 1.3s infinite cubic-bezier(.65,.05,.36,1);
+    }
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.16s;
+    }
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.32s;
+    }
+    @keyframes typing-bounce {
+        0%   { transform: translateY(0);    opacity: 0.55; }
+        20%  { transform: translateY(-0.33em); opacity: 1;}
+        40%  { transform: translateY(0);    opacity: 0.7; }
+        100% { transform: translateY(0);    opacity: 0.55;}
+    }
+
     @media (max-width: 940px) {
         .action-bar, .chatbot-footer {
             padding-left: 1em;
@@ -155,6 +187,7 @@
         .chat-message-bubble {
             font-size: 1em;
             padding: 0.8em 1em;
+            white-space: pre-wrap;
         }
         .chatbot-input {
             font-size: 1em;
@@ -421,20 +454,13 @@
 </script>
 
 <!-- Monaco loader (from CDN) -->
-<script>
-    console.log("zebi")
-    window.addEventListener("DOMContentLoaded", () => {
-            const data = JSON.parse(document.getElementById("data-json").textContent);
-            console.log("Data from FastAPI:", data);
-        });
-</script>
+
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
 
 <div class="app-root-flex">
     <aside class="sidebar-modern" id="app-sidebar">
-        <div class="sidebar-brand">
+        <div class="sidebar-brand" id="sidebar-brand">
             <span style="font-size:1.35em;">🤖</span>
-            Assistant Suite
         </div>
         <nav class="sidebar-nav">
             <a href="#" class="sidebar-nav-link" data-section="chat">
@@ -531,6 +557,17 @@
 <script>
 (function() {
 
+    var data ; 
+    window.addEventListener("DOMContentLoaded", () => {
+            data = JSON.parse(document.getElementById("data-json").textContent);
+            console.log(data)
+            let assistant_div = document.getElementById("sidebar-brand") ; 
+            const assistant_name = document.createTextNode(data["agent_name"]) ; 
+            assistant_div.appendChild(assistant_name) ; 
+            if (data["agent_type"] != "code_act") {
+                document.getElementById("btn-code").style.display = "none";
+            }
+        });
     function escapeHtml(str) {
         return str.replace(/[&<>"']/g, function(match) {
             switch (match) {
@@ -568,7 +605,44 @@
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
+    // Typing indicator management
+    let typingIndicatorRow = null;
+    let typingIndicatorBubble = null;
+
+    function showTypingIndicator() {
+        if(typingIndicatorRow) return;
+
+        typingIndicatorRow = document.createElement('div');
+        typingIndicatorRow.className = 'chat-message-row chat-message bot';
+        typingIndicatorBubble = document.createElement('div');
+        typingIndicatorBubble.className = 'chat-message-bubble';
+
+        let emoji = "🤖";
+        typingIndicatorBubble.innerHTML =
+            `<span class="chat-message-emoji">${emoji}</span>
+            <span class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </span>`;
+
+        typingIndicatorRow.appendChild(typingIndicatorBubble);
+        chatWindow.appendChild(typingIndicatorRow);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    function hideTypingIndicator() {
+        if (typingIndicatorRow && typingIndicatorRow.parentNode) {
+            typingIndicatorRow.parentNode.removeChild(typingIndicatorRow);
+        }
+        typingIndicatorRow = null;
+        typingIndicatorBubble = null;
+    }
+
+
+    // This version no longer calls appendStream directly:
     function appendStream(){
+        // This function is called when fetch starts (and should REMOVE typing indicator)
+        hideTypingIndicator();
         const row = document.createElement('div');
         row.className = 'chat-message-row chat-message ' + "bot";
 
@@ -604,27 +678,52 @@
         // Log the content of the message to the console as requested
         console.log("User message:", value);
         appendMessage(value, "user");
+
+        // Show the typing indicator *before* the fetch, and remove it on stream start
+        showTypingIndicator();
+
+        // Wait a small delay to show the typing indicator for realism, or begin fetch immediately.
+        // Uncomment below for minimum time (optional UX):
+        // await new Promise(resolve => setTimeout(resolve, 350));
+
         const response = await fetch(`/response?prompt=${encodeURIComponent(value)}`);
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        bubble = appendStream()
-        let output = ""
+        bubble = appendStream();
+        console.log("the bubble object ");
+        console.log(bubble);
+        let output = "";
+        let pre = document.createElement('pre');
+        // Style the pre to wrap long lines and pre-wrap whitespace
+        pre.style.whiteSpace = "pre-wrap";
+        pre.style.wordBreak = "break-word";
+        bubble.appendChild(pre);
         while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          if (chunk.includes("[DONE]")) break;
+            const chunk = decoder.decode(value, { stream: true });
 
-          output += chunk;
-          bubble.innerHTML += chunk
+            if (chunk.includes("[DONE]")) break;
 
-          console.log(output)
+            output += chunk;
+            pre.textContent = output;
+
+            console.log(output);
         }
 
         chatInput.value = "";
         // simulateBotReply(value);
+        //     fetch (`/response?prompt=${encodeURIComponent(value)}`, {
+        //     method : 'GET' , 
+        //     headers : {
+        //         'Content-Type': 'application/json' , 
+        //     },
+        // }).then(response => response.json())
+        //  .then(result => console.log(result))
+        //  .catch(error => console.error('Error:', error));
     });
+
 
     chatInput.addEventListener('keydown', function(e) {
         if (e.key === "Enter" && !e.shiftKey) {
