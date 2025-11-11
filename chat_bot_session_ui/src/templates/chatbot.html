@@ -251,6 +251,83 @@
         vertical-align: middle;
         filter: drop-shadow(0 0.07em 2px #ffffff80);
     }
+    /* --- Tool Cart Stylish Component --- */
+    .tool-cart-container {
+        margin: 1.1em 0 0.2em 0;
+        padding: 1.1em 1.3em 1.1em 1.2em;
+        background: linear-gradient(90deg,#eef9fb 80%, #e0edfc 100%);
+        border: 1.6px solid #b5deff;
+        border-radius: 1em;
+        box-shadow: 0 2px 11px #9cdbfa17;
+        font-size: 1em;
+        color: #255a82;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6em;
+        max-width: 99%;
+        /* Responsive for side scroll: */
+        overflow-x: auto;
+        margin-left: 2.1em;
+        margin-right: 0;
+    }
+    .tool-cart-title {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        font-size: 1.05em;
+        color: #247a57;
+        margin-bottom: 0.25em;
+        gap: 0.5em;
+    }
+    .tool-cart-badge {
+        display: inline-block;
+        background: linear-gradient(90deg, #88e2e9 60%, #f0faff 100%);
+        border-radius: 0.66em;
+        padding: 0.22em 0.9em;
+        font-size: 0.93em;
+        margin-left: 0.6em;
+        color: #225b64;
+        font-weight: 700;
+        letter-spacing: 0.015em;
+        box-shadow: 0 1px 5px #51dbe540;
+    }
+    .tool-cart-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: none;
+        margin-top: 0.13em;
+    }
+    .tool-cart-table th,
+    .tool-cart-table td {
+        padding: 0.28em 0.58em;
+        text-align: left;
+        vertical-align: top;
+        background: none;
+        border: none;
+        font-size: 0.98em;
+    }
+    .tool-cart-table th {
+        color: #216689;
+        font-weight: 700;
+        background: none;
+        width: 28%;
+        letter-spacing: 0.01em;
+    }
+    .tool-cart-table td {
+        color: #234881;
+        font-weight: 500;
+        background: none;
+        max-width: 37vw;
+        word-break: break-all;
+    }
+    .tool-cart-divider {
+        height: 1.5px;
+        background: linear-gradient(90deg,#b7e2fa 60%,#e2f7f7 100%);
+        border: 0;
+        margin: 0.42em 0 0.55em 0;
+        border-radius: 1em;
+    }
+
     .chatbot-footer {
         padding: 1.35em 2em 1.7em 2em;
         background: none;
@@ -264,6 +341,7 @@
         display: flex;
         position: relative;
     }
+    /* Change: allow textarea to expand for multi-line, styled as before */
     .chatbot-input {
         width: 100%;
         padding: 1em 1.2em 1em 1.2em;
@@ -275,6 +353,14 @@
         outline: none;
         box-shadow: 0 2px 10px #b6e8fc11;
         transition: border-color 0.19s, box-shadow 0.18s;
+        resize: none;
+        min-height: 2.5em;
+        max-height: 9em;
+        line-height: 1.45;
+        overflow-y: hidden; /* CHANGED: Hide vertical scrollbar */
+        /* Ensure wrapping for long lines */
+        white-space: pre-wrap;
+        word-break: break-word;
     }
     .chatbot-input:focus {
         border-color: #66a9ee;
@@ -294,6 +380,10 @@
         box-shadow: 0 2px 12px #b6e6fa39;
         transition: background 0.16s, opacity 0.18s;
         opacity: 0.95;
+        height: auto;
+        /* Keep Send button from stretching with textarea */
+        align-self: flex-end;
+        flex-shrink: 0;
     }
     .chatbot-send-btn:active {
         opacity: 0.8;
@@ -491,11 +581,11 @@
         </div>
         <!-- Toggleable: Chat view, Code Editor, Logger view -->
         <section class="chat-window" id="chat-window">
-            <div class="chat-message-row chat-message bot">
+            <!-- <div class="chat-message-row chat-message bot">
                 <div class="chat-message-bubble">
                     <span class="chat-message-emoji">🤖</span>Hi! How can I help you today?
                 </div>
-            </div>
+            </div> -->
         </section>
         <section id="code-section">
             <div id="monaco-editor-container"></div>
@@ -538,13 +628,14 @@
         <footer class="chatbot-footer" id="chatbot-footer">
             <form id="chatbot-form" style="display: flex; flex:1; gap: 1em;">
                 <div class="chatbot-input-box">
-                    <input
+                    <textarea
                         class="chatbot-input"
                         id="chatbot-input"
                         placeholder="Type your message and hit Enter..."
                         autocomplete="off"
                         required
-                    />
+                        rows="1"
+                    ></textarea>
                 </div>
                 <button type="submit" class="chatbot-send-btn" id="chatbot-send-btn">
                     Send
@@ -590,6 +681,7 @@
     let monacoEditor = null;
     let monacoInitialized = false;
     let monacoLoaderQueue = [];
+    let chatBusy = false; // Added: flag to track if chat is busy
 
     function appendMessage(text, sender = "user") {
         const row = document.createElement('div');
@@ -657,6 +749,166 @@
         return bubble 
     }
 
+    function parseActionString(actionStr) {
+        const nameMatch = actionStr.match(/<name>\s*([\s\S]*?)\s*<\/name>/);
+        const name = nameMatch ? nameMatch[1].trim() : null;
+
+      const inputsMatch = actionStr.match(/<inputs>\s*([\s\S]*?)\s*<\/inputs>/);
+       let inputs = {};
+        if (inputsMatch) {
+        try {
+        inputs = JSON.parse(inputsMatch[1].trim());
+        } catch (e) {
+        console.error("Invalid JSON in inputs:", e);
+        }
+    }
+
+    return { name, inputs };
+    }
+
+    function createToolCart(actionDict) {
+        // Helper: make a tool "cart" node
+        const cart = document.createElement('div');
+        cart.className = "tool-cart-container";
+
+        // Title row with cart icon, tool name badge
+        const title = document.createElement('div');
+        title.className = "tool-cart-title";
+        title.innerHTML = `Tool <span class="tool-cart-badge">${escapeHtml(actionDict.name || 'Unknown')}</span>`;
+        cart.appendChild(title);
+
+        // Divider under title
+        const divider = document.createElement('div');
+        divider.className = "tool-cart-divider";
+        cart.appendChild(divider);
+
+        // Inputs table
+        const table = document.createElement('table');
+        table.className = "tool-cart-table";
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        let foundInputs = false;
+        if (actionDict.inputs && typeof actionDict.inputs === "object" && Object.keys(actionDict.inputs).length > 0) {
+            foundInputs = true;
+            Object.keys(actionDict.inputs).forEach(k => {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th');
+                th.textContent = k;
+                const td = document.createElement('td');
+                let val = actionDict.inputs[k];
+                td.textContent = typeof val === "object" ? JSON.stringify(val) : String(val);
+                tr.appendChild(th); tr.appendChild(td);
+                tbody.appendChild(tr);
+            });
+        }
+
+        if (foundInputs) {
+            table.appendChild(tbody);
+        } else {
+            // No inputs, add a row stating "No inputs"
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.textContent = "No tool inputs provided.";
+            td.colSpan = 2;
+            td.style.color = "#7186a4";
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            table.appendChild(tbody);
+        }
+
+        cart.appendChild(table);
+
+        // Horizontal divider WITH button group overlaid in the center
+        const dividerWithButton = document.createElement('div');
+        dividerWithButton.style.position = "relative";
+        dividerWithButton.style.marginTop = "1.7em";
+        dividerWithButton.style.marginBottom = "0.1em";
+        dividerWithButton.style.height = "2.6em"; // Height enough for buttons
+
+        // The line
+        const hrLine = document.createElement('div');
+        hrLine.style.position = "absolute";
+        hrLine.style.top = "50%";
+        hrLine.style.left = "0";
+        hrLine.style.right = "0";
+        hrLine.style.height = "2px";
+        hrLine.style.background = "linear-gradient(90deg, #e1e8f0 90%, #e8ecee 100%)";
+        hrLine.style.transform = "translateY(-50%)";
+        dividerWithButton.appendChild(hrLine);
+
+        // Button group container (to center absolutely)
+        const btnRow = document.createElement('div');
+        btnRow.style.position = "absolute";
+        btnRow.style.left = "50%";
+        btnRow.style.top = "50%";
+        btnRow.style.transform = "translate(-50%, -50%)";
+        btnRow.style.display = "flex";
+        btnRow.style.justifyContent = "center";
+        btnRow.style.alignItems = "center";
+        btnRow.style.gap = "0.8em";
+        // Remove marginTop because it's now centered over the line
+
+        // Validate button
+        const validateBtn = document.createElement('button');
+        validateBtn.type = "button";
+        validateBtn.innerHTML = "<span style='font-size:1.14em;margin-right:0.46em;'>✔️</span>Validate";
+        validateBtn.style.background = "linear-gradient(90deg, #c1e5c1 80%, #ecf8ea 100%)";
+        validateBtn.style.color = "#257631";
+        validateBtn.style.fontWeight = "600";
+        validateBtn.style.padding = "0.58em 1.45em";
+        validateBtn.style.border = "none";
+        validateBtn.style.borderRadius = "0.9em";
+        validateBtn.style.fontSize = "1em";
+        validateBtn.style.cursor = "pointer";
+        validateBtn.style.boxShadow = "0 2px 9px #badcbd31";
+        validateBtn.style.transition = "background 0.13s, color 0.13s, box-shadow 0.14s";
+        validateBtn.onmouseover = function() {
+            validateBtn.style.background = "linear-gradient(90deg,#b4f6b4 70%,#e0fce7 100%)";
+            validateBtn.style.boxShadow = "0 2px 14px #c6f7cc3a";
+        }
+        validateBtn.onmouseout = function() {
+            validateBtn.style.background = "linear-gradient(90deg, #c1e5c1 80%, #ecf8ea 100%)";
+            validateBtn.style.boxShadow = "0 2px 9px #badcbd31";
+        }
+        validateBtn.onclick = function() {
+            console.log("Validate actionDict", actionDict);
+        };
+
+        // Cancel button
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = "button";
+        cancelBtn.innerHTML = "<span style='font-size:1.13em;margin-right:0.45em;'>✖️</span>Cancel";
+        cancelBtn.style.background = "linear-gradient(90deg, #fae6e6 80%, #fff5f7 100%)";
+        cancelBtn.style.color = "#a02d2d";
+        cancelBtn.style.fontWeight = "600";
+        cancelBtn.style.padding = "0.58em 1.32em";
+        cancelBtn.style.border = "none";
+        cancelBtn.style.borderRadius = "0.9em";
+        cancelBtn.style.fontSize = "1em";
+        cancelBtn.style.cursor = "pointer";
+        cancelBtn.style.boxShadow = "0 2px 9px #f8b3b331";
+        cancelBtn.style.transition = "background 0.13s, color 0.13s, box-shadow 0.14s";
+        cancelBtn.onmouseover = function() {
+            cancelBtn.style.background = "linear-gradient(90deg,#fed8d8 80%,#ffe7f0 100%)";
+            cancelBtn.style.boxShadow = "0 2px 14px #f6c7c74a";
+        }
+        cancelBtn.onmouseout = function() {
+            cancelBtn.style.background = "linear-gradient(90deg, #fae6e6 80%, #fff5f7 100%)";
+            cancelBtn.style.boxShadow = "0 2px 9px #f8b3b331";
+        }
+        cancelBtn.onclick = function() {
+            console.log("Cancel actionDict", actionDict);
+        };
+
+        btnRow.appendChild(validateBtn);
+        btnRow.appendChild(cancelBtn);
+        dividerWithButton.appendChild(btnRow);
+        cart.appendChild(dividerWithButton);
+
+        return cart;
+    }
+
     function simulateBotReply(userText) {
         setTimeout(function() {
             let reply;
@@ -671,10 +923,36 @@
         }, 550 + Math.random()*500);
     }
 
+    // Autosize textarea
+    function autoGrowTextarea(el) {
+        el.style.height = "auto";
+        // Use current computed max-height, obeying no vertical scroll
+        const maxHeight = parseInt(window.getComputedStyle(el).maxHeight, 10) || 9999;
+        el.style.overflowY = "hidden";
+        el.style.height = (el.scrollHeight > maxHeight ? maxHeight : el.scrollHeight) + "px";
+    }
+    chatInput.addEventListener('input', function() {
+        autoGrowTextarea(chatInput);
+    });
+    // Initialize to right size if autofilled or template
+    window.addEventListener('DOMContentLoaded', function() {
+        autoGrowTextarea(chatInput);
+    });
+
     chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        if (chatBusy) return; // Prevent new submit while busy
+        chatBusy = true; // set busy
+        sendBtn.disabled = true; // disable send button
+        chatInput.readOnly = true; // make input readonly to avoid typing more
+
         const value = chatInput.value.trim();
-        if (!value) return;
+        if (!value) {
+            chatBusy = false;
+            sendBtn.disabled = false;
+            chatInput.readOnly = false;
+            return;
+        }
         // Log the content of the message to the console as requested
         console.log("User message:", value);
         appendMessage(value, "user");
@@ -687,6 +965,7 @@
         // await new Promise(resolve => setTimeout(resolve, 350));
 
         const response = await fetch(`/response?prompt=${encodeURIComponent(value)}`);
+        chatInput.textContent = "" ; 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         bubble = appendStream();
@@ -698,21 +977,77 @@
         pre.style.whiteSpace = "pre-wrap";
         pre.style.wordBreak = "break-word";
         bubble.appendChild(pre);
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        pre.textContent = "Thinking ...." ; 
+        let thinking = false ; 
+        if (data["agent_type"] == "tool_calling") {
+            let tools_details = ""  ; 
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value,{stream : true}) ; 
+                
+                output += chunk ; 
+                if (output.includes("<think>")) {
+                    if (!thinking) {
+                        pre.textContent = "" ; 
+                        thinking = true ; 
+                    }
+                    if (!chunk.includes(">") && !output.includes("</") )
+                        pre.textContent += chunk ; 
+                    else if (output.includes("</think>")) 
+                    {
+                        if (!chunk.inlcudes) {
+                            tools_details += chunk ;                            
+                        }
+                    }
+                    
+                }
+            
+            }
+            console.log("full tools details ") ; 
+            console.log(tools_details) ; 
+            let action_dict = parseActionString(tools_details) ; 
+            console.log("action dict") 
+            console.log(action_dict)
 
+            // ---- 🎯 Insert AI "cart" with tool name/inputs here ----
+            const toolCartElem = createToolCart(action_dict);
+            // Remove the "Thinking..." pre (if any) before showing cart
+            if (pre.parentNode) {
+                pre.parentNode.removeChild(pre);
+            }
+            bubble.appendChild(toolCartElem);
+
+        //     fetch ("http://127.0.0.1:8080/run_tool" , {
+        //     method : 'POST' , 
+        //     headers : {
+        //         'Content-Type': 'application/json' , 
+        //     }, 
+        //     body : JSON.stringify(action_dict)
+        // }).then(response => response.json())
+        //  .then(result => console.log(result))
+        //  .catch(error => console.error('Error:', error));
+
+
+        } else if (data["agent_type"] == "chat_bot")  {
+
+            while (true) {
+                const { done, value } = await reader.read();
+            if (done) break;
+            
             const chunk = decoder.decode(value, { stream: true });
 
             if (chunk.includes("[DONE]")) break;
 
             output += chunk;
             pre.textContent = output;
-
+            
             console.log(output);
         }
+     }
 
         chatInput.value = "";
+        autoGrowTextarea(chatInput); // Reset textarea height after send
         // simulateBotReply(value);
         //     fetch (`/response?prompt=${encodeURIComponent(value)}`, {
         //     method : 'GET' , 
@@ -722,11 +1057,21 @@
         // }).then(response => response.json())
         //  .then(result => console.log(result))
         //  .catch(error => console.error('Error:', error));
+
+        // Restore button and input state
+        chatBusy = false;
+        sendBtn.disabled = false;
+        chatInput.readOnly = false;
     });
 
 
     chatInput.addEventListener('keydown', function(e) {
         if (e.key === "Enter" && !e.shiftKey) {
+            // Prevent ENTER from sending if busy
+            if (sendBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
             e.preventDefault();
             sendBtn.click();
         }

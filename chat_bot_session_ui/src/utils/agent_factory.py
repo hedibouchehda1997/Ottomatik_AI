@@ -13,6 +13,7 @@ import os
 class AgentFactory : 
     def __init__(self) : 
         self.agent_details = None 
+        self.tools = []
         pass 
 
     def set_agent_details(self,agent_details : Dict) : 
@@ -22,9 +23,9 @@ class AgentFactory :
         return self.agent_details  
 
     def fetch_tools(self,tool_names:List[str]) : 
-        self.tools = []
-        for tool_name in tool_names : 
-            if tool_name == "tavily_seach" : 
+    
+        for tool_name in tool_names :
+            if tool_name == "tavily_search" : 
                 self.tools.append(TavilySearchTool)
 
     def build_llm_model(self) : 
@@ -32,8 +33,6 @@ class AgentFactory :
             with load_env(["OPENAI_API_KEY"])   : 
                 self.logger = Logger("test.txt")
                 key = os.environ.get("OPENAI_API_KEY") 
-                print("the api key ")
-                print(key)
                 self.llm_data_loader = LLMDataLoader(model=self.agent_details["model"],
                                             api_key=key , 
                                             llm_spec = {"stream":True}) 
@@ -41,22 +40,22 @@ class AgentFactory :
                                         logger=self.logger)
 
     def build_agent(self) : 
-        print(f"agent type : {self.agent_details["agent_type"]}")
-        print("agent details from agent factory ")
-        print(self.agent_details)
         self.build_llm_model()
         if self.agent_details["agent_type"] == "react" : 
             self.fetch_tools(self.agent_details["tools"])
             self.agent = ReactAgent(llm_call=self.llm_call, 
                                     tools=self.tools, 
                                     logger = self.logger)
-            print("react agent is built correctly !!!!")
-            print("we're building a react agent") 
         elif self.agent_details["agent_type"] == "tool_calling" : 
             print("we're building a tool calling agent")
+            self.fetch_tools(self.agent_details["tools"])
+            tool_calling_agent = ToolCallingAgent(llm_call=self.llm_call, tools=self.tools,
+                                                  system_prompt=self.agent_details["system_prompt"],
+                                                  logger = self.logger) 
+
+            return tool_calling_agent 
+            
         elif self.agent_details["agent_type"] == "chat_bot" : 
-            print("from build agent, agent details")
-            print(self.agent_details)
             simple_memory = SimpleMemory()
 
             simple_agent = SimpleAgent(llm_call=self.llm_call, logger=self.logger, 
@@ -65,4 +64,3 @@ class AgentFactory :
 
             return simple_agent
 
-            print("we're building a simple chat bot")

@@ -38,7 +38,7 @@ class LLMDataLoader :
 #It should be able to handle the different objects of specific LLm provider (eg gpt, clauder)
 #Or even open source LLM deployed by user 
 class LLMCall : 
-    def __init__(self,llm_data_loader:LLMDataLoader, logger:Logger=None) :
+    def __init__(self  ,llm_data_loader:LLMDataLoader, logger:Logger=None) :
         
         """
                 api_key : str = your openai api key , 
@@ -54,7 +54,6 @@ class LLMCall :
                                     "model" : self.llm_data_loader.model, 
                                     **self.llm_data_loader.llm_spec}
                 self.model_client = GPTCall(model_specs=self.model_specs,
-                                                token_counter = self.token_counter, 
                                                 logger = logger )
                 print("GPTCall created correctly ")
                 

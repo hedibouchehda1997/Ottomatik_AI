@@ -103,6 +103,12 @@ class ToolCallingAgent :
         self.logger.info(f"{self.name} agent final response : \n {response}\n")
         return response 
 
+    def pipeline_for_streaming_ui(self,query) : 
+        for chunk in self.thinking_response : 
+            delta = getattr(chunk.choices[0].delta, 'content', None) 
+            if delta : 
+                yield delta 
+
     def pipeline_for_streaming(self,query) : 
         
 
@@ -189,5 +195,5 @@ class ToolCallingAgent :
                 return final_response
         else : 
             print("we are in case of streamin")
-            return self.pipeline_for_streaming(query)
+            return self.pipeline_for_streaming_ui(query)
 

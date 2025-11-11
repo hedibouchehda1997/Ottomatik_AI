@@ -8,13 +8,12 @@ from openai import OpenAI
 
 #This class will be used to do queries on gpt models 
 class GPTCall : 
-    def __init__(self,model_specs:Dict,token_counter:TokenCounter,logger:Logger) : 
+    def __init__(self,model_specs:Dict,logger:Logger) : 
         if "model" not in model_specs : 
             raise ValueError("the gpt is not set with a model") 
         if "api_key" not in model_specs :
             raise ValueError("you didn't provide an OpenAI key")
         self.call_input = model_specs 
-        self.token_counter = token_counter 
         self.logger = logger
         self.gpt_client = OpenAI(api_key=self.call_input["api_key"])
         self.call_input.pop("api_key",None)
@@ -33,7 +32,6 @@ class GPTCall :
         sys_user_prompt_pair = {}
         for message in messages :
             sys_user_prompt_pair[message["role"]] = message["content"]
-        self.token_counter.append_new_prompt_pair(sys_user_prompt_pair)
         try : 
 
             response_obj = self.gpt_client.chat.completions.create(**self.call_input) 

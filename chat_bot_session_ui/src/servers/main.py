@@ -28,7 +28,7 @@ app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates_path = os.path.join(base_dir, "templates")
 templates = Jinja2Templates(directory=templates_path)
 tools_loader = ToolsLoader() 
-tools_loader.set_tools([TavilySearchTool]) 
+tools_loader.add_tool(TavilySearchTool) 
 
 
 session_manager = SessionManager(user_id="123")
@@ -50,8 +50,8 @@ test_sets = []
 
 tools_description_list = tools_loader.get_tools_description()  
 for tool_description in tools_description_list : 
-
     print(f"tool_description : {tool_description}") 
+
 
 class ReactDetails(BaseModel) : 
     agent_type : str 
@@ -105,8 +105,8 @@ def get_table_page(request : Request) :
     agent_details = agent_factory.get_agent_details()
     print("from chat endpoint ") 
     print(agent_details)
-    print("the type of created agent") 
-    print(type(session_manager.agent))
+    # print("the type of created agent") 
+    # print(type(session_manager.agent))
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "templates", "chatbot.html")
@@ -178,6 +178,8 @@ async def set_agent(request:Request,
     print(agent_details.dict())
     agent_factory.set_agent_details(agent_details.dict())
     agent = agent_factory.build_agent()
+    print("the agent rendered by the factory ")
+    print(type(agent))
     
     session_manager.set_agent(agent)
     return {"response":'ok'}
@@ -200,19 +202,25 @@ async def build_new_test_set(request : Request,
 @app.get("/response") 
 async def llm_response(prompt:str) : 
     print("last streamed response ")
-    session_manager.agent.simple_memory.dump()
+    agent_details = agent_factory.get_agent_details() 
+    if agent_details["agent_type"] == "chat_bot" : 
+        session_manager.agent.simple_memory.dump()
     async def token_generator() : 
-        session_manager.last_streamed_response= ""
-        for chunk in session_manager.agent(prompt): 
-            delta = getattr(chunk.choices[0].delta, 'content', None)
-            if delta : 
-                session_manager.last_streamed_response += delta
-                yield delta 
-        session_manager.agent.add_query_response(user_query=prompt, 
+        if agent_details["agent_type"] == "chat_bot" : 
+            session_manager.last_streamed_response= ""
+            for chunk in session_manager.agent(prompt): 
+                delta = getattr(chunk.choices[0].delta, 'content', None)
+                if delta : 
+                    session_manager.last_streamed_response += delta
+                    yield delta 
+            session_manager.agent.add_query_response(user_query=prompt, 
                                                  ai_response=session_manager.last_streamed_response)
-        yield "\n [DONE]"
+            yield "\n [DONE]"
+        elif agent_details["agent_type"] == "tool_calling" : 
+            for chunk in session_manager.agent(prompt) : 
+                yield chunk
 
     print("\n\n\n\n\n")
 
 
-    return StreamingResponse(token_generator(),media_type="text/plain")
+    return StreamingResponse(token_generator(),media_type="text/plain") 
