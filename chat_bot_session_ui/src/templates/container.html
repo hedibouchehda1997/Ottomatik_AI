@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resizable Split Page</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body, #main-container {
+            height: 100vh;
+            min-height: 100vh;
+        }
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #split-container {
+            flex: 1 1 auto;
+            display: flex;
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
+            background: #f7fafb;
+        }
+        .pane {
+            min-width: 50px;
+            height: 100%;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+        #pane-left {
+            background: #f8f9fa;
+            width: 100%;
+            transition: width .2s;
+        }
+        #pane-right {
+            background: #e9fff0;
+            width: 50%;
+            display: none;
+            transition: width .2s;
+            position: relative;
+            padding: 0;
+        }
+        #divider {
+            width: 8px;
+            min-width: 8px;
+            background: #dee2e6;
+            cursor: ew-resize;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+            transition: background 0.2s;
+            display: none;
+        }
+        #divider:hover {
+            background: #adb5bd;
+        }
+        /* Optional: show resizer grab line for accessibility */
+        #divider:after {
+            content: "";
+            display: block;
+            width: 2px;
+            height: 60%;
+            background: #adb5bd55;
+            position: absolute;
+            left: 50%;
+            top: 20%;
+            transform: translateX(-50%);
+            border-radius: 1px;
+        }
+        /* Right Side Split (vertical)*/
+        #right-split-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-pane {
+            width: 100%;
+            min-height: 40px;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+        #right-divider {
+            height: 8px;
+            width: 100%;
+            min-height: 8px;
+            background: #dee2e6;
+            cursor: ns-resize;
+            position: relative;
+            z-index: 3;
+            transition: background 0.2s;
+            display: none;
+        }
+        #right-divider:hover {
+            background: #adb5bd;
+        }
+        #right-divider:after {
+            content: "";
+            display: block;
+            height: 2px;
+            width: 60%;
+            background: #adb5bd55;
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            transform: translateY(-50%);
+            border-radius: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <div id="controls" class="bg-light border-bottom py-3 px-4 mb-0">
+            <div class="d-flex gap-2">
+                <button id="split-btn" class="btn btn-primary">Show Split View</button>
+                <button id="other-btn" class="btn btn-secondary">Other Button</button>
+                <button id="split-vertical-btn" class="btn btn-success">Split Right Side Vertically</button>
+                <button id="unsplit-vertical-btn" class="btn btn-outline-success">Unsplit Right Vertically</button>
+            </div>
+        </div>
+        <div id="split-container">
+            <div id="pane-left" class="pane border-end">Left Side</div>
+            <div id="divider"></div>
+            <div id="pane-right" class="pane">
+                <div id="right-split-container" style="height: 100%;">
+                    <div id="pane-right-top" class="right-pane" style="display: none; height: 50%;">Right Side Top</div>
+                    <div id="right-divider" style="display: none;"></div>
+                    <div id="pane-right-bottom" class="right-pane" style="display: none; height: 50%;">Right Side Bottom</div>
+                    <div id="pane-right-single" style="height: 100%; width: 100%;">Right Side</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS Bundle (with Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Elements
+        const splitBtn = document.getElementById('split-btn');
+        const otherBtn = document.getElementById('other-btn');
+        const splitVerticalBtn = document.getElementById('split-vertical-btn');
+        const unsplitVerticalBtn = document.getElementById('unsplit-vertical-btn');
+        const splitContainer = document.getElementById('split-container');
+        const divider = document.getElementById('divider');
+        const paneLeft = document.getElementById('pane-left');
+        const paneRight = document.getElementById('pane-right');
+        const rightSplitContainer = document.getElementById('right-split-container');
+        const rightDivider = document.getElementById('right-divider');
+        const paneRightTop = document.getElementById('pane-right-top');
+        const paneRightBottom = document.getElementById('pane-right-bottom');
+        const paneRightSingle = document.getElementById('pane-right-single');
+
+        // Initial State: only left pane shown, no right-side split
+        divider.style.display = 'none';
+        paneRight.style.display = 'none';
+        paneLeft.style.width = '100%';
+        paneRightTop.style.display = 'none';
+        rightDivider.style.display = 'none';
+        paneRightBottom.style.display = 'none';
+        paneRightSingle.style.display = 'block';
+
+        let isDragging = false;
+        let isDraggingVertical = false;
+        let startX = 0;
+        let startLeftWidth = 0;
+        let startY = 0;
+        let startTopHeight = 0;
+
+        splitBtn.addEventListener('click', function() {
+            // Activate split view and enable resizing
+            divider.style.display = 'block';
+            paneRight.style.display = 'block';
+            // Default 50/50 split horizontally
+            paneLeft.style.width = 'calc(50% - 4px)';
+            paneRight.style.width = 'calc(50% - 4px)';
+            // By default, right is NOT split vertically, it's a single pane
+            paneRightTop.style.display = 'none';
+            rightDivider.style.display = 'none';
+            paneRightBottom.style.display = 'none';
+            paneRightSingle.style.display = 'block';
+            paneRightSingle.style.height = '100%';
+        });
+
+        // Add: Other Button handler to return to single side layout if currently split
+        otherBtn.addEventListener('click', function() {
+            // Only do something if paneRight is visible
+            if (paneRight.style.display !== 'none') {
+                divider.style.display = 'none';
+                paneRight.style.display = 'none';
+                paneLeft.style.width = '100%';
+
+                // Remove right side vertical split if any
+                paneRightTop.style.display = 'none';
+                rightDivider.style.display = 'none';
+                paneRightBottom.style.display = 'none';
+                paneRightSingle.style.display = 'block';
+                paneRightSingle.style.height = '100%';
+            }
+        });
+
+        // Handler for Vertical Split Button
+        splitVerticalBtn.addEventListener('click', function() {
+            if (paneRight.style.display !== 'none' && paneRightSingle.style.display !== 'none') {
+                // Replace right single with split top-bottom
+                paneRightSingle.style.display = 'none';
+                paneRightTop.style.display = 'block';
+                rightDivider.style.display = 'block';
+                paneRightBottom.style.display = 'block';
+                // Default 50/50 split vertically
+                paneRightTop.style.height = 'calc(50% - 4px)';
+                rightDivider.style.height = '8px';
+                paneRightBottom.style.height = 'calc(50% - 4px)';
+                rightSplitContainer.style.flexDirection = 'column';
+            }
+        });
+
+        // Handler for Unsplit Vertical Button
+        unsplitVerticalBtn.addEventListener('click', function() {
+            if (
+                paneRight.style.display !== 'none' &&
+                paneRightTop.style.display === 'block' &&
+                rightDivider.style.display === 'block' &&
+                paneRightBottom.style.display === 'block'
+            ) {
+                // Remove vertical split on right side, back to single right pane
+                paneRightTop.style.display = 'none';
+                rightDivider.style.display = 'none';
+                paneRightBottom.style.display = 'none';
+                paneRightSingle.style.display = 'block';
+                paneRightSingle.style.height = '100%';
+            }
+        });
+
+        // Horizontal resize events (LEFT/RIGHT)
+        divider.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startLeftWidth = paneLeft.getBoundingClientRect().width;
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const rect = splitContainer.getBoundingClientRect();
+                const dividerWidth = divider.offsetWidth;
+                let offset = e.clientX - rect.left;
+                const min = 50;
+                let leftWidth = offset;
+                let totalWidth = rect.width;
+                let maxRight = Math.floor((3/5) * totalWidth);
+                let minLeftForMaxRight = totalWidth - maxRight - dividerWidth;
+
+                if (leftWidth < min) leftWidth = min;
+                if (leftWidth > totalWidth - dividerWidth - min) leftWidth = totalWidth - dividerWidth - min;
+
+                let rightWidth = totalWidth - leftWidth - dividerWidth;
+                if (rightWidth > (3/5)*totalWidth) {
+                    rightWidth = Math.floor((3/5)*totalWidth);
+                    leftWidth = totalWidth - rightWidth - dividerWidth;
+                }
+
+                paneLeft.style.width = leftWidth + 'px';
+                paneRight.style.width = rightWidth + 'px';
+            } else if (isDraggingVertical) {
+                // Vertical resizing inside right pane
+                const rect = rightSplitContainer.getBoundingClientRect();
+                const rightDividerHeight = rightDivider.offsetHeight;
+                let offset = e.clientY - rect.top;
+                const min = 40;
+                let topHeight = offset;
+                let totalHeight = rect.height;
+
+                // Clamp heights
+                if (topHeight < min) topHeight = min;
+                if (topHeight > totalHeight - rightDividerHeight - min) topHeight = totalHeight - rightDividerHeight - min;
+
+                let bottomHeight = totalHeight - topHeight - rightDividerHeight;
+
+                paneRightTop.style.height = topHeight + 'px';
+                paneRightBottom.style.height = bottomHeight + 'px';
+            }
+        });
+
+        window.addEventListener('mouseup', function(e) {
+            if (isDragging) {
+                isDragging = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+            if (isDraggingVertical) {
+                isDraggingVertical = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+
+        // Vertical resize (TOP/BOTTOM inside right)
+        rightDivider.addEventListener('mousedown', function(e) {
+            isDraggingVertical = true;
+            startY = e.clientY;
+            startTopHeight = paneRightTop.getBoundingClientRect().height;
+            document.body.style.cursor = 'ns-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+
+        // Touch support (horizontal)
+        divider.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 0) {
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                startLeftWidth = paneLeft.getBoundingClientRect().width;
+                document.body.style.cursor = 'ew-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            }
+        }, {passive: false});
+        window.addEventListener('touchmove', function(e) {
+            if (isDragging) {
+                const touch = e.touches[0];
+                const rect = splitContainer.getBoundingClientRect();
+                const dividerWidth = divider.offsetWidth;
+                let offset = touch.clientX - rect.left;
+
+                const min = 50;
+                let leftWidth = offset;
+                let totalWidth = rect.width;
+                let maxRight = Math.floor((3/5) * totalWidth);
+                let minLeftForMaxRight = totalWidth - maxRight - dividerWidth;
+
+                if (leftWidth < min) leftWidth = min;
+                if (leftWidth > totalWidth - dividerWidth - min) leftWidth = totalWidth - dividerWidth - min;
+
+                let rightWidth = totalWidth - leftWidth - dividerWidth;
+                if (rightWidth > (3/5)*totalWidth) {
+                    rightWidth = Math.floor((3/5)*totalWidth);
+                    leftWidth = totalWidth - rightWidth - dividerWidth;
+                }
+
+                paneLeft.style.width = leftWidth + 'px';
+                paneRight.style.width = rightWidth + 'px';
+            } else if (isDraggingVertical) {
+                const touch = e.touches[0];
+                const rect = rightSplitContainer.getBoundingClientRect();
+                const rightDividerHeight = rightDivider.offsetHeight;
+                let offset = touch.clientY - rect.top;
+
+                const min = 40;
+                let topHeight = offset;
+                let totalHeight = rect.height;
+
+                if (topHeight < min) topHeight = min;
+                if (topHeight > totalHeight - rightDividerHeight - min) topHeight = totalHeight - rightDividerHeight - min;
+
+                let bottomHeight = totalHeight - topHeight - rightDividerHeight;
+
+                paneRightTop.style.height = topHeight + 'px';
+                paneRightBottom.style.height = bottomHeight + 'px';
+            }
+        }, {passive: false});
+        window.addEventListener('touchend', function(e) {
+            if (isDragging) {
+                isDragging = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+            if (isDraggingVertical) {
+                isDraggingVertical = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+
+        rightDivider.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 0) {
+                isDraggingVertical = true;
+                startY = e.touches[0].clientY;
+                startTopHeight = paneRightTop.getBoundingClientRect().height;
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            }
+        }, {passive: false});
+
+
+        // When returning to single left, reset right pane to single mode (default state)
+        // Already handled in otherBtn handler above
+
+        // If window is resized, keep the top/bottom proportional if right vertical split is active
+        window.addEventListener('resize', function() {
+            if (paneRight.style.display !== 'none' && paneRightTop.style.display === 'block' && paneRightBottom.style.display === 'block') {
+                const totalHeight = rightSplitContainer.getBoundingClientRect().height;
+                const rightDividerHeight = rightDivider.offsetHeight;
+                const topHeight = totalHeight / 2 - rightDividerHeight / 2;
+                const bottomHeight = totalHeight / 2 - rightDividerHeight / 2;
+                paneRightTop.style.height = topHeight + 'px';
+                paneRightBottom.style.height = bottomHeight + 'px';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -24,7 +24,63 @@
         padding: 2.4rem 0 2rem 0;
         z-index: 3;
         transition: all 0.33s cubic-bezier(.46,0,.13,1);
+        position: relative;
     }
+
+        .sidebar-collapsed {
+        flex: 0 0 10vw !important;
+        min-width: 48px !important;
+        max-width: 60px !important;
+        padding: 0 !important;
+    }
+    /* Hide sidebar children except burger */
+    .sidebar-collapsed .sidebar-brand,
+    .sidebar-collapsed .sidebar-nav {
+        display: none !important;
+    }
+
+        .burger-btn {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: none;
+        border: none;
+        outline: none;
+        padding: 0.5em;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 7px;
+        transition: background 0.19s;
+    }
+    .burger-btn:hover {
+        background: #e9effc;
+    }
+    .burger-icon {
+        display: block;
+        width: 27px;
+        height: 27px;
+    }
+    .burger-icon-bar {
+        display: block;
+        height: 4px;
+        width: 100%;
+        margin: 3.3px 0;
+        border-radius: 2px;
+        background: #376ab1;
+        transition: all 0.23s;
+    }
+    /* Align burger in collapsed mode (vertically center) */
+    .sidebar-collapsed .burger-btn {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
     .sidebar-brand {
         color: #3667ad;
         font-weight: bold;
@@ -35,6 +91,33 @@
         display: flex;
         align-items: center;
         gap: 0.6em;
+    }
+    .sidebar-nav {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 0.7rem 0 0.7rem;
+    }
+
+        /* Align burger in collapsed mode (vertically center) */
+    .sidebar-collapsed .burger-btn {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .sidebar-brand {
+        color: #3667ad;
+        font-weight: bold;
+        font-size: 1.24em;
+        letter-spacing: 0.03em;
+        padding: 0 2.2rem 2.5rem 2.2rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+        margin-top: 2.35em; /* <-- add more top margin to push down brand+nav */
     }
     .sidebar-nav {
         flex: 1 1 auto;
@@ -71,6 +154,14 @@
     .sidebar-nav-link .sidebar-emoji {
         font-size: 1.16em;
         margin-right: 0.3em;
+    }
+    .chatbot-main-section {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: linear-gradient(110deg, #f7fbff 80%, #eaf4fb 100%);
+        transition: width 0.33s cubic-bezier(.46,0,.13,1);
     }
 
     /* Chat Layout */
@@ -548,6 +639,14 @@
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
 
 <div class="app-root-flex">
+
+            <button class="burger-btn" id="sidebar-burger" type="button" aria-label="Toggle menu">
+            <span class="burger-icon">
+                <span class="burger-icon-bar"></span>
+                <span class="burger-icon-bar"></span>
+                <span class="burger-icon-bar"></span>
+            </span>
+        </button>
     <aside class="sidebar-modern" id="app-sidebar">
         <div class="sidebar-brand" id="sidebar-brand">
             <span style="font-size:1.35em;">🤖</span>
@@ -576,7 +675,7 @@
             <div class="action-bar-buttons">
                 <button class="action-bar-btn active" id="btn-chat" type="button">Chat</button>
                 <button class="action-bar-btn" id="btn-code" type="button">Code</button>
-                <button class="action-bar-btn" type="button" id="btn-logger">Logge</button>
+                <button class="action-bar-btn" type="button" id="btn-logger">Logger</button>
             </div>
         </div>
         <!-- Toggleable: Chat view, Code Editor, Logger view -->
@@ -647,18 +746,25 @@
 
 <script>
 (function() {
-
+    var backend_dict;  
     var data ; 
-    window.addEventListener("DOMContentLoaded", () => {
-            data = JSON.parse(document.getElementById("data-json").textContent);
-            console.log(data)
-            let assistant_div = document.getElementById("sidebar-brand") ; 
-            const assistant_name = document.createTextNode(data["agent_name"]) ; 
-            assistant_div.appendChild(assistant_name) ; 
-            if (data["agent_type"] != "code_act") {
-                document.getElementById("btn-code").style.display = "none";
-            }
-        });
+
+        // --- BURGER MENU LOGIC ---
+    const sidebar = document.getElementById('app-sidebar');
+    const burgerBtn = document.getElementById('sidebar-burger');
+    let isSidebarCollapsed = false;
+    burgerBtn.addEventListener('click', function() {
+        console.log("clicked on burger icon ")
+        isSidebarCollapsed = !isSidebarCollapsed;
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('sidebar-collapsed');
+        } else {
+            sidebar.classList.remove('sidebar-collapsed');
+        }
+    });
+    // END BURGER ---
+
+
     function escapeHtml(str) {
         return str.replace(/[&<>"']/g, function(match) {
             switch (match) {
@@ -686,10 +792,8 @@
     function appendMessage(text, sender = "user") {
         const row = document.createElement('div');
         row.className = 'chat-message-row chat-message ' + sender;
-
         const bubble = document.createElement('div');
         bubble.className = 'chat-message-bubble';
-
         let emoji = sender === "bot" ? '🤖' : '🧑';
         bubble.innerHTML = `<span class="chat-message-emoji">${emoji}</span>${escapeHtml(text)}`;
         row.appendChild(bubble);
@@ -701,27 +805,7 @@
     let typingIndicatorRow = null;
     let typingIndicatorBubble = null;
 
-    function showTypingIndicator() {
-        if(typingIndicatorRow) return;
-
-        typingIndicatorRow = document.createElement('div');
-        typingIndicatorRow.className = 'chat-message-row chat-message bot';
-        typingIndicatorBubble = document.createElement('div');
-        typingIndicatorBubble.className = 'chat-message-bubble';
-
-        let emoji = "🤖";
-        typingIndicatorBubble.innerHTML =
-            `<span class="chat-message-emoji">${emoji}</span>
-            <span class="typing-indicator">
-                <span class="typing-dot"></span>
-                <span class="typing-dot"></span>
-                <span class="typing-dot"></span>
-            </span>`;
-
-        typingIndicatorRow.appendChild(typingIndicatorBubble);
-        chatWindow.appendChild(typingIndicatorRow);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
+    
     function hideTypingIndicator() {
         if (typingIndicatorRow && typingIndicatorRow.parentNode) {
             typingIndicatorRow.parentNode.removeChild(typingIndicatorRow);
@@ -730,17 +814,14 @@
         typingIndicatorBubble = null;
     }
 
-
     // This version no longer calls appendStream directly:
     function appendStream(){
         // This function is called when fetch starts (and should REMOVE typing indicator)
         hideTypingIndicator();
         const row = document.createElement('div');
         row.className = 'chat-message-row chat-message ' + "bot";
-
         const bubble = document.createElement('div');
         bubble.className = 'chat-message-bubble';
-
         let emoji =  '🤖' 
         bubble.innerHTML = `<span class="chat-message-emoji">${emoji}</span>`;
         row.appendChild(bubble);
@@ -871,8 +952,82 @@
             validateBtn.style.background = "linear-gradient(90deg, #c1e5c1 80%, #ecf8ea 100%)";
             validateBtn.style.boxShadow = "0 2px 9px #badcbd31";
         }
-        validateBtn.onclick = function() {
+        validateBtn.onclick = async function() {
+             
+            let ai_message = cart.parentElement ; 
+            let new_text = document.createTextNode("Generating final response ....") ;  
+            ai_message.removeChild(cart) ; 
+            ai_message.appendChild(new_text) ;
+            try {
+                const response = await fetch("http://127.0.0.1:8080/run_tool",{
+                    method : 'POST', 
+                    headers : {
+                        'Content-Type': 'application/json',
+                    }, 
+                    body: JSON.stringify(actionDict)
+                })
+                var result = await response.json() ; 
+            }
+            catch (error) {
+                alert(error) ; 
+            }
+            console.log("printing the result of the fetch !!!!!!")
+            console.log(result["response"])
+            let chatSpace = document.getElementById("chat-window") ; 
+            const lastChild = chatSpace.lastElementChild;
+            const secondLastChild = chatSpace.children[chatSpace.children.length - 2];
+            console.log("last Child") ; 
+            console.log(lastChild) ;
+            console.log("user prompt ") ; 
+            let user_query = secondLastChild.lastElementChild.childNodes[1].nodeValue.trim() ; 
             console.log("Validate actionDict", actionDict);
+            console.log("ai father message ") ; 
+            console.log(ai_message) ; 
+          
+ 
+            // ai_message.textContent = "Generating final response ...."; 
+            let final_response_input = {
+                    "user_query" : user_query,
+                    "tool_call_result" : result["response"]
+            } ; 
+
+            console.log("printing final response input ") ; 
+            console.log(final_response_input) ; 
+
+            try {
+                const response = await fetch("http://127.0.0.1:3030/final_response", {
+                    method : 'POST' , 
+                    headers : {
+                        'Content-Type': 'application/json',
+                    }, 
+                    body : JSON.stringify(final_response_input)
+                })
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let output = "" ; 
+                ai_message.innerHTML = "" ; 
+                let pre = document.createElement('pre');
+                pre.style.whiteSpace = "pre-wrap";
+                pre.style.wordBreak = "break-word";
+                ai_message.appendChild(pre) ; 
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                        const chunk = decoder.decode(value,{stream : true}) ; 
+                        output += chunk ; 
+                        //add message here 
+                 
+                        pre.textContent += chunk ; 
+
+
+            }
+
+            console.log("final response ") ; 
+            console.log(output) ; 
+            } catch(error) {
+                alert(error) ; 
+            }
         };
 
         // Cancel button
@@ -934,9 +1089,38 @@
     chatInput.addEventListener('input', function() {
         autoGrowTextarea(chatInput);
     });
-    // Initialize to right size if autofilled or template
-    window.addEventListener('DOMContentLoaded', function() {
-        autoGrowTextarea(chatInput);
+
+    // --- minimal change: render chat memory from backend_dict["memory"] ---
+    function renderChatHistoryFromMemory(memory) {
+        if (!Array.isArray(memory)) return;
+        for (let msg of memory) {
+            if ('user' in msg) {
+                appendMessage(msg.user, "user");
+            } else if ('ai' in msg) {
+                appendMessage(msg.ai, "bot");
+            }
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        backend_dict = JSON.parse(document.getElementById("data-json").textContent);
+        console.log("backend_dict") ; 
+        console.log(backend_dict) ; 
+        console.log("printing the history of the chat") ; 
+        console.log(backend_dict["memory"]) ; 
+        data = backend_dict["agents"] ; 
+        console.log(data)
+        let assistant_div = document.getElementById("sidebar-brand") ; 
+        const assistant_name = document.createTextNode(data["agent_name"]) ; 
+        autoGrowTextarea(chatInput) ; 
+        assistant_div.appendChild(assistant_name) ; 
+        if (data["agent_type"] != "code_act") {
+            document.getElementById("btn-code").style.display = "none";
+        }
+        // Render chat memory on load
+        if (backend_dict["memory"]) {
+            renderChatHistoryFromMemory(backend_dict["memory"]);
+        }
     });
 
     chatForm.addEventListener('submit', async function(e) {
@@ -957,8 +1141,8 @@
         console.log("User message:", value);
         appendMessage(value, "user");
 
-        // Show the typing indicator *before* the fetch, and remove it on stream start
-        showTypingIndicator();
+        chatInput.value = "";
+        autoGrowTextarea(chatInput); // Reset textarea height after send
 
         // Wait a small delay to show the typing indicator for realism, or begin fetch immediately.
         // Uncomment below for minimum time (optional UX):
@@ -1018,47 +1202,22 @@
             }
             bubble.appendChild(toolCartElem);
 
-        //     fetch ("http://127.0.0.1:8080/run_tool" , {
-        //     method : 'POST' , 
-        //     headers : {
-        //         'Content-Type': 'application/json' , 
-        //     }, 
-        //     body : JSON.stringify(action_dict)
-        // }).then(response => response.json())
-        //  .then(result => console.log(result))
-        //  .catch(error => console.error('Error:', error));
-
-
         } else if (data["agent_type"] == "chat_bot")  {
 
             while (true) {
                 const { done, value } = await reader.read();
-            if (done) break;
+                if (done) break;
             
             const chunk = decoder.decode(value, { stream: true });
 
             if (chunk.includes("[DONE]")) break;
-
+  
             output += chunk;
-            pre.textContent = output;
-            
-            console.log(output);
+            pre.textContent = output;            
         }
      }
 
-        chatInput.value = "";
-        autoGrowTextarea(chatInput); // Reset textarea height after send
-        // simulateBotReply(value);
-        //     fetch (`/response?prompt=${encodeURIComponent(value)}`, {
-        //     method : 'GET' , 
-        //     headers : {
-        //         'Content-Type': 'application/json' , 
-        //     },
-        // }).then(response => response.json())
-        //  .then(result => console.log(result))
-        //  .catch(error => console.error('Error:', error));
-
-        // Restore button and input state
+        
         chatBusy = false;
         sendBtn.disabled = false;
         chatInput.readOnly = false;

@@ -514,6 +514,11 @@
                     <label for="agent-name" class="field-label">Agent name</label>
                     <input type="text" id="agent-name" class="field-input" placeholder="Enter agent name..." />
                 </div>
+                <!-- Description textarea inserted here -->
+                <div class="field-group">
+                    <label for="agent-description" class="field-label">Description</label>
+                    <textarea id="agent-description" class="field-textarea" placeholder="Enter a description of this agent (optional)..."></textarea>
+                </div>
                 <div class="field-group" id="model-group">
                     <label for="model" class="field-label">Model</label>
                     <select id="model" class="field-select"></select>
@@ -636,6 +641,8 @@
         formData[getLabelText("agent-type")] = document.getElementById("agent-type").value;
         // Add Agent name to formData
         formData[getLabelText("agent-name")] = document.getElementById("agent-name").value;
+        // Add agent description to formData
+        formData[getLabelText("agent-description")] = document.getElementById("agent-description").value;
         console.log("from on aplly ") ; 
         // console.log(document.getElementById("agent-type").value) ; 
         if (document.getElementById("agent-type").value == "tool_calling") {
@@ -644,7 +651,7 @@
             if (respInstructionsGroup && respInstructionsGroup.style.display !== "none") {
                 let generator_instructions = data["patterns"]["tool_calling"]["prompts"]["prompt_generator"].replace("{more_intstruction}",respInstructionsGroup.value )  ;  
                 let full_generator_prompt = data["patterns"]["tool_calling"]["prompts"]["prompt_tool_call"].replace("{system_prompt}",systemPromptValue) ; 
-                formData[getLabelText("response-generator-instructions")] = generator_instructions; 
+                formData[getLabelText("response-generator-instructions")] = document.getElementById("response-generator-instructions").value; 
                 formData[getLabelText("system-prompt")] = full_generator_prompt ;       
                 formData[getLabelText("tools-combo")] = selectedTools && selectedTools.length > 0 ? selectedTools.slice() : [];
 
@@ -665,6 +672,8 @@
 
         }
         formData[getLabelText("model")] = document.getElementById("model").value;
+        formData["id_"] = "0" ; 
+        formData["version"] = 0 ; 
         console.log("Form Data:", formData);
         fetch ("http://127.0.0.1:3030/set_agent" , {
             method : 'POST' , 
@@ -675,7 +684,7 @@
         }).then(response => response.json())
          .then(result => console.log(result))
          .catch(error => console.error('Error:', error));
-         window.location.href = "/chat";
+        window.location.href = "/chat";
 
     }
 
@@ -991,6 +1000,7 @@
         agentTypeSelect.addEventListener("change", function() {
             // Clear form inputs on type change
             document.getElementById("agent-name").value = "";
+            document.getElementById("agent-description").value = "";
             document.getElementById("system-prompt").value = "";
             document.getElementById("response-generator-instructions").value = "";
             // Reset tools

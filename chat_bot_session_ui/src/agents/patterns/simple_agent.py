@@ -1,12 +1,11 @@
 from chat_bot_session_ui.src.models.llm_models import LLMCall, LLMDataLoader
 from chat_bot_session_ui.src.utils.custom_logger import Logger 
-from chat_bot_session_ui.src.memories.simple_memory import SimpleMemory
+from chat_bot_session_ui.src.memories.memory import Memory
 from typing import Dict, List
 
 
 class SimpleAgent : 
-    def __init__(self,llm_call:LLMCall, logger:Logger, name="simple_agent",system_prompt:str=""
-                ,simple_memory:SimpleMemory=None) : 
+    def __init__(self,llm_call:LLMCall, logger:Logger, name="simple_agent",system_prompt:str="") : 
         if llm_call is None : 
             raise ValueError(f"{name} need a model") 
         else : 
@@ -17,7 +16,7 @@ class SimpleAgent :
         else : 
             self.name = name 
         self.system_prompt = system_prompt
-        self.simple_memory = simple_memory
+        self.simple_memory = Memory()
     
 
 

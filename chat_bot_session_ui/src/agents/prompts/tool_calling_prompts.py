@@ -30,13 +30,14 @@ If you consider that you have enough internal knowledge about the user query, yo
 """.strip()
 
 tool_calling_response_generator = """
-    you are a the response generator of a tool calling agent. 
-    You need to provide a response for the following query : 
-    {query} 
+you are a the response generator of a tool calling agent. 
+You need to provide a response for the following query : 
+{query} 
 
-    Here's all the details of the called tool for this query : 
-    {tool_call_details}
+Here's all the details of the called tool for this query : 
+{tool_call_details}
 
-    More instruction : 
-    - Try to be exhausive in your response 
+More instruction : 
+- Try to be exhausive in your response 
+{more_instructions}
 """.strip()

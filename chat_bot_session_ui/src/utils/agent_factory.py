@@ -1,12 +1,12 @@
 from typing import Dict, List 
 from chat_bot_session_ui.src.agents.patterns.react_agent import ReactAgent 
 from chat_bot_session_ui.src.agents.patterns.tool_calling_agent import ToolCallingAgent
+from chat_bot_session_ui.src.agents.patterns.simple_agent import SimpleAgent
 from chat_bot_session_ui.src.tools.web_search_tools import TavilySearchTool
 from chat_bot_session_ui.src.utils.custom_logger import Logger
 from chat_bot_session_ui.src.models.llm_models import TokenCounter, LLMDataLoader, LLMCall
 from chat_bot_session_ui.src.utils.env_utils import load_env
-from chat_bot_session_ui.src.memories.simple_memory import SimpleMemory
-from chat_bot_session_ui.src.agents.patterns.simple_agent import SimpleAgent
+from chat_bot_session_ui.src.memories.memory import Memory
 import os
 
 
@@ -48,18 +48,22 @@ class AgentFactory :
                                     logger = self.logger)
         elif self.agent_details["agent_type"] == "tool_calling" : 
             print("we're building a tool calling agent")
+            print(list(self.agent_details.keys())) 
             self.fetch_tools(self.agent_details["tools"])
+            
             tool_calling_agent = ToolCallingAgent(llm_call=self.llm_call, tools=self.tools,
                                                   system_prompt=self.agent_details["system_prompt"],
                                                   logger = self.logger) 
 
+            tool_calling_agent.set_generator_instructions(self.agent_details["instruction_for_response_generator"])
+
+
             return tool_calling_agent 
             
         elif self.agent_details["agent_type"] == "chat_bot" : 
-            simple_memory = SimpleMemory()
 
             simple_agent = SimpleAgent(llm_call=self.llm_call, logger=self.logger, 
-                                        simple_memory=simple_memory, system_prompt=self.agent_details["system_prompt"],
+                                        system_prompt=self.agent_details["system_prompt"],
                                         name=self.agent_details["agent_name"])  
 
             return simple_agent

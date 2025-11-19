@@ -1,6 +1,6 @@
 
 
-class SimpleMemory : 
+class Memory : 
     def __init__(self) : 
         self.query_response_pairs = [] 
     

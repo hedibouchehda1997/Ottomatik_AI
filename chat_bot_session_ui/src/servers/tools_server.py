@@ -31,5 +31,5 @@ app.add_middleware(
 def run_tool(tool_details : ToolDetails) : 
     print(f"tool details from the server : \n {tool_details.dict()}")
     response = tools_loader.run_tool(tool_details.dict())  
-    print(f"response : \n {response}")
-    return {"response":"ok"}
+    
+    return {"response":response}

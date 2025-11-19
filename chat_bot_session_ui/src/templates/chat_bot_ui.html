@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ChatGPT Modern Frontend</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/static/chat_bot_ui.css">
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f7f9fb;
+    }
+    .app-root-flex {
+        display: flex;
+        width: 100vw;
+        min-height: 100vh;
+        background: #f7f9fb;
+    }
+    .sidebar-modern {
+        flex: 0 0 220px;
+        max-width: 240px;
+        min-width: 180px;
+        background: linear-gradient(120deg, #e4edfb 60%, #f4f7fa 100%);
+        box-shadow: 2px 0 16px -7px #739ccd20;
+        border-right: 1.5px solid #e6eaf4;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 2.4rem 0 2rem 0;
+        z-index: 3;
+        transition: all 0.33s cubic-bezier(.46,0,.13,1);
+        position: relative;
+    }
+    .sidebar-collapsed {
+        flex: 0 0 10vw !important;
+        min-width: 48px !important;
+        max-width: 60px !important;
+        padding: 0 !important;
+    }
+    /* Hide sidebar children except burger */
+    .sidebar-collapsed .sidebar-brand,
+    .sidebar-collapsed .sidebar-nav {
+        display: none !important;
+    }
+    .burger-btn {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: none;
+        border: none;
+        outline: none;
+        padding: 0.5em;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 7px;
+        transition: background 0.19s;
+    }
+    .burger-btn:hover {
+        background: #e9effc;
+    }
+    .burger-icon {
+        display: block;
+        width: 27px;
+        height: 27px;
+    }
+    .burger-icon-bar {
+        display: block;
+        height: 4px;
+        width: 100%;
+        margin: 3.3px 0;
+        border-radius: 2px;
+        background: #376ab1;
+        transition: all 0.23s;
+    }
+    /* Align burger in collapsed mode (vertically center) */
+    .sidebar-collapsed .burger-btn {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .sidebar-brand {
+        color: #3667ad;
+        font-weight: bold;
+        font-size: 1.24em;
+        letter-spacing: 0.03em;
+        padding: 0 2.2rem 2.5rem 2.2rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+        margin-top: 2.35em; /* <-- add more top margin to push down brand+nav */
+    }
+    .sidebar-nav {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 0.7rem 0 0.7rem;
+    }
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.88em;
+        font-size: 1.1em;
+        font-weight: 500;
+        background: transparent;
+        border: none;
+        color: #254874;
+        padding: 0.94em 1.1em 0.94em 1.3em;
+        border-radius: 0.66em;
+        cursor: pointer;
+        margin-bottom: 0.23em;
+        transition: background 0.14s, color 0.16s, box-shadow 0.12s;
+        text-align: left;
+        outline: none;
+        box-shadow: 0 1.5px 10px 0 #b8c9ed15;
+        position: relative;
+        text-decoration: none;
+    }
+    .sidebar-nav-link.active, .sidebar-nav-link:focus, .sidebar-nav-link:hover {
+        background: linear-gradient(90deg,#eaf3ff 70%,#e0f7fa 100%);
+        color: #3667ad;
+        box-shadow: 0 1.5px 12px #c4def612;
+    }
+    .sidebar-nav-link .sidebar-emoji {
+        font-size: 1.16em;
+        margin-right: 0.3em;
+    }
+    .chatbot-main-section {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: linear-gradient(110deg, #f7fbff 80%, #eaf4fb 100%);
+        transition: width 0.33s cubic-bezier(.46,0,.13,1);
+    }
+
+    /* ... The rest of your styles remain unchanged ... */
+
+    /* Keep your other CSS rules unchanged here — omitted for brevity */
+</style>
+</head>
+
+
+<script id="data-json" type="application/json">
+        {{ data | tojson }}
+</script>
+
+<!-- Monaco loader (from CDN) -->
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
+
+<div class="app-root-flex">
+    <aside class="sidebar-modern" id="app-sidebar">
+        <!-- Burger button insert -->
+        <button class="burger-btn" id="sidebar-burger" type="button" aria-label="Toggle menu">
+            <span class="burger-icon">
+                <span class="burger-icon-bar"></span>
+                <span class="burger-icon-bar"></span>
+                <span class="burger-icon-bar"></span>
+            </span>
+        </button>
+        <div class="sidebar-brand" id="sidebar-brand" >
+            <span style="font-size:1.35em;">🤖</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="sidebar-nav-link" data-section="chat">
+                <span class="sidebar-emoji">🧪</span>
+                Tests
+            </a>
+            <a href="#" class="sidebar-nav-link" data-section="history">
+                <span class="sidebar-emoji">⚙️</span>
+                Agent Configuration
+            </a>
+            <a href="#" class="sidebar-nav-link active" data-section="settings">
+                <span class="sidebar-emoji">💬</span>
+                Live Chat
+            </a>
+        </nav>
+    </aside>
+    <main class="chatbot-main-section">
+        <div class="action-bar">
+            <div class="action-bar-title">
+                <span class="chat-message-emoji">💬</span>
+                <span>AI Assistant</span>
+            </div>
+            <div class="action-bar-buttons">
+                <button class="action-bar-btn active" id="btn-chat" type="button">Chat</button>
+                <button class="action-bar-btn" id="btn-code" type="button">Code</button>
+                <button class="action-bar-btn" type="button" id="btn-logger">Logge</button>
+            </div>
+        </div>
+        <!-- Toggleable: Chat view, Code Editor, Logger view -->
+        <section class="chat-window" id="chat-window"></section>
+        <section id="code-section">
+            <div id="monaco-editor-container"></div>
+        </section>
+        <section id="logger-section">
+            <!-- Collapsible info -->
+            <div class="log-block log-collapsed-info" id="log-collapsed-info-1">
+                <div class="log-collapsed-header" tabindex="0">
+                    <span class="log-arrow">&#9654;</span>
+                    Collapsible Information
+                </div>
+                <div class="log-collapsed-body">
+                    This section can be collapsed. It gives detailed information, for example helpful expanded logs or explanations.
+                    <br><br>
+                    When collapsed, only the title is visible.
+                    <br>
+                    <em>You can define your own logic/text here. This component fits a modern assistant UI.</em>
+                </div>
+            </div>
+            <!-- Info message -->
+            <div class="log-block log-info">
+                This is an informational message with a white background. Use this component to show neutral logs or information to the user.
+            </div>
+            <!-- Warning message -->
+            <div class="log-block log-warning">
+                <span class="log-warning-icon">⚠️</span>
+                <span>
+                    <strong>Warning:</strong> This action might have unintended consequences. Please double-check your configuration and proceed carefully.
+                </span>
+            </div>
+            <!-- Error message -->
+            <div class="log-block log-error">
+                <span class="log-error-icon">⛔</span>
+                <span>
+                    <strong>Error:</strong> Something went wrong and your request could not be processed.<br>
+                    Please try again or contact support if the problem persists.
+                </span>
+            </div>
+        </section>
+        <footer class="chatbot-footer" id="chatbot-footer">
+            <form id="chatbot-form" style="display: flex; flex:1; gap: 1em;">
+                <div class="chatbot-input-box">
+                    <textarea
+                        class="chatbot-input"
+                        id="chatbot-input"
+                        placeholder="Type your message and hit Enter..."
+                        autocomplete="off"
+                        required
+                        rows="1"
+                    ></textarea>
+                </div>
+                <button type="submit" class="chatbot-send-btn" id="chatbot-send-btn">
+                    Send
+                </button>
+            </form>
+        </footer>
+    </main>
+</div>
+
+<script>
+(function() {
+    var backend_dict;  
+    var data ; 
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function(match) {
+            switch (match) {
+                case "&": return "&amp;";
+                case "<": return "&lt;";
+                case ">": return "&gt;";
+                case '"': return "&quot;";
+                case "'": return "&#039;";
+            }
+        });
+    }
+
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chatbot-form');
+    const chatInput = document.getElementById('chatbot-input');
+    const sendBtn = document.getElementById('chatbot-send-btn');
+    const chatFooter = document.getElementById('chatbot-footer');
+    const codeSection = document.getElementById('code-section');
+    const loggerSection = document.getElementById('logger-section');
+    let monacoEditor = null;
+    let monacoInitialized = false;
+    let monacoLoaderQueue = [];
+    let chatBusy = false; // Added: flag to track if chat is busy
+
+    // --- BURGER MENU LOGIC ---
+    const sidebar = document.getElementById('app-sidebar');
+    const burgerBtn = document.getElementById('sidebar-burger');
+    let isSidebarCollapsed = false;
+    burgerBtn.addEventListener('click', function() {
+        isSidebarCollapsed = !isSidebarCollapsed;
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('sidebar-collapsed');
+        } else {
+            sidebar.classList.remove('sidebar-collapsed');
+        }
+    });
+    // END BURGER ---
+
+    function appendMessage(text, sender = "user") {
+        const row = document.createElement('div');
+        row.className = 'chat-message-row chat-message ' + sender;
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-message-bubble';
+        let emoji = sender === "bot" ? '🤖' : '🧑';
+        bubble.innerHTML = `<span class="chat-message-emoji">${emoji}</span>${escapeHtml(text)}`;
+        row.appendChild(bubble);
+        chatWindow.appendChild(row);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    // Typing indicator management
+    let typingIndicatorRow = null;
+    let typingIndicatorBubble = null;
+
+    function showTypingIndicator() {
+        if(typingIndicatorRow) return;
+
+        typingIndicatorRow = document.createElement('div');
+        typingIndicatorRow.className = 'chat-message-row chat-message bot';
+        typingIndicatorBubble = document.createElement('div');
+        typingIndicatorBubble.className = 'chat-message-bubble';
+
+        let emoji = "🤖";
+        typingIndicatorBubble.innerHTML =
+            `<span class="chat-message-emoji">${emoji}</span>
+            <span class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </span>`;
+
+        typingIndicatorRow.appendChild(typingIndicatorBubble);
+        chatWindow.appendChild(typingIndicatorRow);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    function hideTypingIndicator() {
+        if (typingIndicatorRow && typingIndicatorRow.parentNode) {
+            typingIndicatorRow.parentNode.removeChild(typingIndicatorRow);
+        }
+        typingIndicatorRow = null;
+        typingIndicatorBubble = null;
+    }
+
+    // ... Rest of your JS code is unchanged ...
+
+    // Keep the rest of the script exactly as before (minimal changes for burger)!
+
+    // --- minimal change: render chat memory from backend_dict["memory"] ---
+    function renderChatHistoryFromMemory(memory) {
+        if (!Array.isArray(memory)) return;
+        for (let msg of memory) {
+            if ('user' in msg) {
+                appendMessage(msg.user, "user");
+            } else if ('ai' in msg) {
+                appendMessage(msg.ai, "bot");
+            }
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        backend_dict = JSON.parse(document.getElementById("data-json").textContent);
+        console.log("backend_dict") ; 
+        console.log(backend_dict) ; 
+        console.log("printing the history of the chat") ; 
+        console.log(backend_dict["memory"]) ; 
+        data = backend_dict["agents"] ; 
+        console.log(data)
+        let assistant_div = document.getElementById("sidebar-brand") ; 
+        const assistant_name = document.createTextNode(data["agent_name"]) ; 
+        assistant_div.appendChild(assistant_name) ; 
+        if (data["agent_type"] != "code_act") {
+            document.getElementById("btn-code").style.display = "none";
+        }
+        // Render chat memory on load
+        if (backend_dict["memory"]) {
+            renderChatHistoryFromMemory(backend_dict["memory"]);
+        }
+    });
+
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (chatBusy) return; // Prevent new submit while busy
+        chatBusy = true; // set busy
+        sendBtn.disabled = true; // disable send button
+        chatInput.readOnly = true; // make input readonly to avoid typing more
+
+        const value = chatInput.value.trim();
+        if (!value) {
+            chatBusy = false;
+            sendBtn.disabled = false;
+            chatInput.readOnly = false;
+            return;
+        }
+        // Log the content of the message to the console as requested
+        console.log("User message:", value);
+        appendMessage(value, "user");
+
+        // Show the typing indicator *before* the fetch, and remove it on stream start
+        showTypingIndicator();
+
+        // Wait a small delay to show the typing indicator for realism, or begin fetch immediately.
+        // Uncomment below for minimum time (optional UX):
+        // await new Promise(resolve => setTimeout(resolve, 350));
+
+        const response = await fetch(`/response?prompt=${encodeURIComponent(value)}`);
+        chatInput.textContent = "" ; 
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        bubble = appendStream();
+        console.log("the bubble object ");
+        console.log(bubble);
+        let output = "";
+        let pre = document.createElement('pre');
+        // Style the pre to wrap long lines and pre-wrap whitespace
+        pre.style.whiteSpace = "pre-wrap";
+        pre.style.wordBreak = "break-word";
+        bubble.appendChild(pre);
+        pre.textContent = "Thinking ...." ; 
+        let thinking = false ; 
+        if (data["agent_type"] == "tool_calling") {
+            let tools_details = ""  ; 
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value,{stream : true}) ; 
+                
+                output += chunk ; 
+                if (output.includes("<think>")) {
+                    if (!thinking) {
+                        pre.textContent = "" ; 
+                        thinking = true ; 
+                    }
+                    if (!chunk.includes(">") && !output.includes("</") )
+                        pre.textContent += chunk ; 
+                    else if (output.includes("</think>")) 
+                    {
+                        if (!chunk.inlcudes) {
+                            tools_details += chunk ;                            
+                        }
+                    }
+                    
+                }
+            
+            }
+            console.log("full tools details ") ; 
+            console.log(tools_details) ; 
+            let action_dict = parseActionString(tools_details) ; 
+            console.log("action dict") 
+            console.log(action_dict)
+
+            // ---- 🎯 Insert AI "cart" with tool name/inputs here ----
+            const toolCartElem = createToolCart(action_dict);
+            // Remove the "Thinking..." pre (if any) before showing cart
+            if (pre.parentNode) {
+                pre.parentNode.removeChild(pre);
+            }
+            bubble.appendChild(toolCartElem);
+
+        } else if (data["agent_type"] == "chat_bot")  {
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+
+            if (chunk.includes("[DONE]")) break;
+  
+            output += chunk;
+            pre.textContent = output;            
+        }
+     }
+
+        chatInput.value = "";
+        autoGrowTextarea(chatInput); // Reset textarea height after send
+        // simulateBotReply(value);
+        //     fetch (`/response?prompt=${encodeURIComponent(value)}`, {
+        //     method : 'GET' , 
+        //     headers : {
+        //         'Content-Type': 'application/json' , 
+        //     },
+        // }).then(response => response.json())
+        //  .then(result => console.log(result))
+        //  .catch(error => console.error('Error:', error));
+
+        // Restore button and input state
+        chatBusy = false;
+        sendBtn.disabled = false;
+        chatInput.readOnly = false;
+    });
+
+    chatInput.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            // Prevent ENTER from sending if busy
+            if (sendBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            e.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    // Sidebar navigation active state (matches style)
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            document.querySelectorAll('.sidebar-nav-link').forEach(x => x.classList.remove('active'));
+            link.classList.add('active');
+            e.preventDefault();
+            let titleNode = Array.from(link.childNodes).find(node =>
+                node.nodeType === 3 && node.textContent.trim()
+            );
+            let sectionTitle = titleNode ? titleNode.textContent.trim() : link.textContent.trim();
+            console.log("zebi zebi")
+            console.log(sectionTitle);
+            if (sectionTitle == "Tests") {
+                window.location.href = "/tests" ; 
+            } else if (sectionTitle == "Agent Configuration") {
+                window.location.href = "/agent_config"
+            }
+        })
+    });
+
+    // --- View switching logic (chat/code/logger) ---
+    const btnChat = document.getElementById('btn-chat');
+    const btnCode = document.getElementById('btn-code');
+    const btnLogger = document.getElementById('btn-logger');
+
+    function showChatView() {
+        chatWindow.style.display = '';
+        chatFooter.style.display = '';
+        codeSection.style.display = 'none';
+        loggerSection.style.display = 'none';
+    }
+    function showCodeView() {
+        chatWindow.style.display = 'none';
+        chatFooter.style.display = 'none';
+        codeSection.style.display = 'flex';
+        loggerSection.style.display = 'none';
+
+        // Monaco loader
+        if (!monacoInitialized) {
+            monacoInitialized = true;
+            window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs' } });
+            window.require(['vs/editor/editor.main'], function() {
+                monaco.editor.defineTheme('assistant-light', {
+                    base: 'vs',
+                    inherit: true,
+                    rules: [
+                        { token: 'comment', foreground: '90a4ae' },
+                        { token: 'keyword', foreground: '21528f', fontStyle: 'bold' },
+                        { token: 'string', foreground: '388e3c' },
+                        { token: 'number', foreground: '00838f' },
+                        { token: 'identifier', foreground: '234881' }
+                    ],
+                    colors: {
+                        "editor.background": "#f7f9fb",
+                        "editor.foreground": "#2c455f",
+                        "editor.lineHighlightBackground": "#e9effc",
+                        "editor.lineHighlightBorder": "#e9effc",
+                        "editorCursor.foreground": "#3DA8F5",
+                        "editorLineNumber.foreground": "#b3bdcf",
+                        "editorIndentGuide.background": "#eaeaea",
+                        "editorIndentGuide.activeBackground": "#bfdffa",
+                        "editor.selectionBackground": "#b8e5fa44",
+                        "editorWidget.background": "#f9fbff",
+                        "editorWidget.border": "#cbe6fa",
+                        "editorGutter.background": "#f7f9fb",
+                        "editorBracketMatch.background": "#dbefff",
+                        "editorBracketMatch.border": "#bde4fa",
+                    }
+                });
+                const initialCode = [
+                    '// Welcome to the Monaco Editor!',
+                    'function greet(name) {',
+                    '    return `Hello, ${name}!`;',
+                    '}',
+                    '',
+                    'console.log(greet("world"));'
+                ].join('\n');
+                monacoEditor = monaco.editor.create(
+                    document.getElementById('monaco-editor-container'), {
+                        value: initialCode,
+                        language: 'javascript',
+                        automaticLayout: true,
+                        theme: 'assistant-light',
+                        minimap: { enabled: false },
+                        fontSize: 15,
+                        fontFamily: "Fira Mono, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                        scrollbar: { verticalScrollbarSize: 7, horizontalScrollbarSize: 7 }
+                    }
+                );
+                monacoLoaderQueue.forEach(cb => cb());
+                monacoLoaderQueue = [];
+            });
+        } else if (monacoEditor) {
+            setTimeout(function() {
+                monacoEditor.layout();
+                monacoEditor.focus();
+            }, 100);
+        }
+    }
+
+    function showLoggerView() {
+        chatWindow.style.display = 'none';
+        codeSection.style.display = 'none';
+        chatFooter.style.display = 'none';
+        loggerSection.style.display = 'flex';
+    }
+
+    // Action bar button logic with view switch
+    document.querySelectorAll('.action-bar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.action-bar-btn').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            if (btn === btnChat) {
+                showChatView();
+            } else if (btn === btnCode) {
+                showCodeView();
+            } else if (btn === btnLogger) {
+                showLoggerView();
+            }
+        });
+    });
+
+    // Collapsible behavior for log-collapsed-info
+    function setupLoggerCollapsible() {
+        const collapsedInfo = document.getElementById('log-collapsed-info-1');
+        if (!collapsedInfo) return;
+        const header = collapsedInfo.querySelector('.log-collapsed-header');
+        collapsedInfo.classList.add('collapsed');
+        function toggle() {
+            if (collapsedInfo.classList.contains('collapsed')) {
+                collapsedInfo.classList.remove('collapsed');
+            } else {
+                collapsedInfo.classList.add('collapsed');
+            }
+        }
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.key === ' ') {
+                toggle();
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Make "Live Chat" sidebar link active on load
+    document.addEventListener('DOMContentLoaded', function() {
+        var links = document.querySelectorAll('.sidebar-nav-link');
+        links.forEach(x => x.classList.remove('active'));
+        var liveChat = document.querySelector('.sidebar-nav-link[data-section="settings"]');
+        if (liveChat) liveChat.classList.add('active');
+        setupLoggerCollapsible();
+    });
+
+    // If script loads after DOM ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(function() {
+            var links = document.querySelectorAll('.sidebar-nav-link');
+            links.forEach(x => x.classList.remove('active'));
+            var liveChat = document.querySelector('.sidebar-nav-link[data-section="settings"]');
+            if (liveChat) liveChat.classList.add('active');
+            setupLoggerCollapsible();
+        }, 0);
+    }
+
+    // Load Chat view by default
+    showChatView();
+
+})();
+</script>

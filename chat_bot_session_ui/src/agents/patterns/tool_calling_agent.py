@@ -2,6 +2,7 @@ from chat_bot_session_ui.src.agents.prompts.tool_calling_prompts import tool_cal
 from chat_bot_session_ui.src.models.llm_models import LLMCall, LLMDataLoader
 from chat_bot_session_ui.src.utils.custom_logger import Logger 
 from chat_bot_session_ui.src.tools.tools import Tool 
+from chat_bot_session_ui.src.memories.memory import Memory
 from typing import Dict, List
 import time
 import re 
@@ -18,8 +19,9 @@ class ToolCallingAgent :
             raise ValueError("you need to provide tools for the toll calling chat bot")
         else : 
             self.tools = tools 
+        
         # self.memory = memory
-
+        self.simple_memory = Memory()
         self.system_prompt = system_prompt
         self.thinking_res = ''
         self.name = name 
@@ -27,6 +29,7 @@ class ToolCallingAgent :
         
         self.history_action = "" 
         self.tools_description = ""
+        self.more_instructions_generator = ""
         for tool in tools : 
             tool_description = tool.get_tool_details() 
             self.tools_description += tool_description + "\n"
@@ -37,6 +40,13 @@ class ToolCallingAgent :
         messages = [{"role":"system","content":self.sys_prompt},
                     {"role":"user","content":f"User query : {query}"}] 
         return self.llm_call(messages) 
+
+    def set_generator_instructions(self,more_instructions:str) : 
+        print("######## setting more instructions ######## ")
+        print(more_instructions)
+        print("########################")
+        self.more_instructions_generator = more_instructions ; 
+
         
 
     def get_sys_prompt(self) : 
@@ -97,7 +107,11 @@ class ToolCallingAgent :
             self.logger.info(f"Tool running output : \n {response} \n")
             return response 
     def response_generator(self,query:str,tool_call_details:str) : 
-        full_prompt = tool_calling_response_generator.format(query=query, tool_call_details=tool_call_details)
+        full_prompt = tool_calling_response_generator.format(query=query, tool_call_details=tool_call_details,
+                                                             more_instructions=self.more_instructions_generator)
+        print("############### \n\n\n")
+        print(full_prompt) 
+        print("##############")
         messages = [{"role":"user","content":f"{full_prompt}"}]
         response = self.llm_call(messages) 
         self.logger.info(f"{self.name} agent final response : \n {response}\n")

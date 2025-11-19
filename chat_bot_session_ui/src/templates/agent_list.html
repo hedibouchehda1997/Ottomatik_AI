@@ -1,0 +1,312 @@
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        min-width: 0;
+    }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f8fafc;
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        min-width: 0;
+        height: 100vh;
+        min-height: 100vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Main container stretches to full available space */
+    .agent-list-container {
+        flex: 1 1 auto;
+        width: 100vw;
+        max-width: unset;
+        min-width: 0;
+        min-height: 0;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        box-sizing: border-box;
+    }
+    .page-title {
+        font-size: 2.05em;
+        font-weight: 700;
+        color: #21528f;
+        letter-spacing: 0.01em;
+        margin-top: 1.3em;
+        margin-bottom: 2.2em;
+        text-align: left;
+        padding-left: 2.5vw;
+        padding-right: 2.5vw;
+    }
+    .agent-cards-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.3em;
+        width: 100%;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        min-height: 0;
+        padding-left: 2.5vw;
+        padding-right: 2.5vw;
+        box-sizing: border-box;
+    }
+    .agent-card {
+        width: 100%;
+        background: linear-gradient(98deg,#f8fdff 90%,#e9f5fe 100%);
+        border: 1.7px solid #bdd9f7;
+        box-shadow: 0 3px 20px #c3e8fa13;
+        border-radius: 1.19em;
+        padding: 1.10em 1.5em;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1em;
+        position: relative;
+        min-width: 0;
+        max-width: unset;
+        box-sizing: border-box;
+    }
+    .agent-info-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 0.28em;
+        gap: 0.52em;
+    }
+    .agent-label {
+        font-size: 1em;
+        font-weight: 600;
+        color: #4a7ccc;
+        min-width: 80px;
+        letter-spacing: 0.01em;
+    }
+    .agent-value {
+        font-size: 1.08em;
+        color: #233956;
+        opacity: 0.98;
+        font-weight: 500;
+    }
+    .agent-launch-btn-row {
+        width: 100%;
+        display: flex;
+        justify-content: center; /* center horizontally */
+        align-items: center;
+        padding-top: 0.2em;
+    }
+    .launch-btn {
+        display: inline-block;
+        padding: 0.65em 3em; /* increased vertical and horizontal padding */
+        min-width: 200px;    /* make button wider */
+        font-size: 1.13em;   /* slightly larger */
+        font-weight: 600;
+        border-radius: 0.7em;
+        background: linear-gradient(93deg,#d0f7e1 70%,#b6ecfa 100%);
+        color: #197a7d;
+        border: 1.1px solid #a3d2ee;
+        box-shadow: 0 1.5px 7px 0 #c3e8fa14;
+        cursor: pointer;
+        outline: none;
+        margin-top: 0.5em;
+        margin-bottom: 0.45em;
+        transition: background 0.18s, color 0.14s, box-shadow 0.17s, transform 0.14s;
+    }
+    .launch-btn:hover, .launch-btn:focus {
+        background: linear-gradient(93deg,#b2e0fa 60%, #c4ffef 100%);
+        color: #19528f;
+        box-shadow: 0 2.5px 10px #bcecff25;
+        transform: translateY(-1px) scale(1.04);
+    }
+    /* Center the add button row horizontally, and give more width to the button */
+    .add-btn-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-top: 2.8em;
+        padding-left: 2.5vw;
+        padding-right: 2.5vw;
+        margin-bottom: 2em;
+        box-sizing: border-box;
+    }
+    .add-btn {
+        display: inline-block;
+        padding: 0.75em 3.5em;
+        min-width: 300px;
+        font-size: 1.19em;
+        font-weight: 600;
+        border-radius: 0.91em;
+        background: linear-gradient(93deg,#eaf3ff 70%,#dcfcf2 100%);
+        color: #228a95;
+        border: 1.3px solid #add8fb;
+        box-shadow: 0 1.5px 7px 0 #c3e8fa18;
+        cursor: pointer;
+        outline: none;
+        transition: background 0.18s, color 0.14s, box-shadow 0.17s, transform 0.14s;
+    }
+    .add-btn:hover, .add-btn:focus {
+        background: linear-gradient(92deg,#d4f4ee 60%, #e6f5fb 100%);
+        color: #21528f;
+        box-shadow: 0 3px 18px #bcecff28;
+        transform: translateY(-1px) scale(1.03);
+    }
+</style>
+
+
+<script id="data-json" type="application/json">
+        {{ data | tojson }}
+</script>
+
+<!-- Expand container to fill viewport -->
+<div class="agent-list-container">
+    <div class="page-title">
+        Agent List
+    </div>
+    <div class="agent-cards-grid" id="agent-cards-grid">
+        <!-- Cards will be inserted here -->
+    </div>
+    <div class="add-btn-row">
+        <button class="add-btn" onclick="addAgent()">Add</button>
+    </div>
+</div>
+
+<script>
+    var data = null ; 
+    window.addEventListener("DOMContentLoaded", () => {
+        data = JSON.parse(document.getElementById("data-json").textContent); 
+        console.log("data from backend ") ; 
+        console.log(data) ;
+        for (let agent_detail of data["agent_collection"]) {
+            agents.push({
+                title : agent_detail["agent_name"] , 
+                type : agent_detail["agent_type"], 
+                version : agent_detail["vers"] , 
+                model : agent_detail["model"] , 
+                description : agent_detail["description"]
+
+            })
+        }
+        renderAgents() ; 
+
+                // {
+        //     title: randomFrom(agentNames),
+        //     type: randomFrom(agentTypes),
+        //     version: randomFrom(agentVersions),
+        //     model: randomFrom(agentModels),
+        // }
+    
+
+    }) ; 
+    // Example data sources for randomized demo
+    const agentNames = [
+        "ResearchBot", "Summarizer", "QA-Bot", "DraftWriter", "Assistant X", "Feedback Bot",
+        "AutoPilot", "Brainstormer", "ScriptGen", "Policy Checker", "Data Helper"
+    ];
+    const agentTypes = [
+        "tool_calling","react","chat_bot"
+    ];
+    const agentVersions = [
+        "v1.0", "v2-beta", "v1.2", "v3.1", "v1.5.1"
+    ];
+    const agentModels = [
+        "gpt-4", "gpt-3.5-turbo", "llama-2-13b", "mistral-large", "gemini-pro", "zephyr-7b"
+    ];
+
+    // Function to random element
+    function randomFrom(arr) {
+        return arr[Math.floor(Math.random()*arr.length)];
+    }
+
+    // For realistic new agents, just increase a counter
+    let agentIndex = 1;
+    let agents = [
+        // {
+        //     title: randomFrom(agentNames),
+        //     type: randomFrom(agentTypes),
+        //     version: randomFrom(agentVersions),
+        //     model: randomFrom(agentModels),
+        // },
+        // {
+        //     title: randomFrom(agentNames),
+        //     type: randomFrom(agentTypes),
+        //     version: randomFrom(agentVersions),
+        //     model: randomFrom(agentModels),
+        // }
+    ];
+
+    function makeAgentCard(agent, index) {
+        // Display each data on a separate row (stacked vertically), add launch button at end
+        return `
+          <div class="agent-card">
+            <div class="agent-info-row">
+                <span class="agent-label">Title:</span>
+                <span class="agent-value">${agent.title}</span>
+            </div>
+            <div class="agent-info-row">
+                <span class="agent-label">Description:</span>
+                <span class="agent-value">${agent.description}</span>
+            </div>
+            <div class="agent-info-row">
+                <span class="agent-label">Type:</span>
+                <span class="agent-value">${agent.type}</span>
+            </div>
+            <div class="agent-info-row">
+                <span class="agent-label">Version:</span>
+                <span class="agent-value">${agent.version}</span>
+            </div>
+            <div class="agent-info-row">
+                <span class="agent-label">Model:</span>
+                <span class="agent-value">${agent.model}</span>
+            </div>
+            <div class="agent-launch-btn-row">
+                <button class="launch-btn" onclick="LaunchAgent(${index})">Launch</button>
+            </div>
+          </div>
+        `
+    }
+
+    function LaunchAgent(idx) {
+        let agent_set = data["agent_collection"][idx] ;
+        
+        console.log("printing agent details") ; 
+        console.log(agent_set)
+        fetch ("http://127.0.0.1:3030/launch_agent" , {
+            method : 'POST' , 
+            headers : {
+                'Content-Type': 'application/json' , 
+            }, 
+            body : JSON.stringify(agent_set)  
+        }).then(response => response.json())
+         .then(result => console.log(result))
+         .catch(error => console.error('Error:', error));
+         window.location.href = "/chat";
+    }
+
+
+    function renderAgents() {
+        const grid = document.getElementById('agent-cards-grid');
+        grid.innerHTML = "";
+        agents.forEach((agent, idx) => {
+            grid.innerHTML += makeAgentCard(agent, idx);
+        });
+    }
+
+    // Add agent with random values (simulate a new cart)
+    function addAgent() {
+        window.location.href = "/new_agent" ; 
+    }
+
+
+
+</script>

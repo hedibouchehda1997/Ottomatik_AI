@@ -333,42 +333,46 @@
         <form class="agent-config-form" autocomplete="off" onsubmit="event.preventDefault();">
             <div class="field-group">
                 <label for="agent-type" class="field-label">Agent Type</label>
-                <select id="agent-type" class="field-select">
-                    <option value="React">React</option>
-                    <option value="Tool Calling">Tool Calling</option>
-                </select>
+                <div id="agent-type" class="field-select">
+                    
+                    <!-- <option value="React">React</option>
+                    <option value="Tool Calling">Tool Calling</option> -->
+                </div>
             </div>
             <div class="field-group" id="model-group">
                 <label for="model" class="field-label">Model</label>
-                <select id="model" class="field-select">
-                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                    <option value="gpt-4">gpt-4</option>
-                </select>
-            </div>
-            <div class="field-group" id="count-group">
-                <label for="count-input" class="field-label">Count</label>
-                <input type="number" id="count-input" class="field-input" value="10" min="1" step="1">
-            </div>
-            <div class="field-group" id="system-prompt-group">
-                <label for="system-prompt" class="field-label">System Prompt</label>
-                <textarea id="system-prompt" class="field-textarea" placeholder="Enter system prompt here..."></textarea>
-            </div>
-            <div class="field-group tools-select-group" id="tools-select-group">
-                <label for="tools-combo" class="field-label">Tools</label>
-                <select id="tools-combo" class="field-select">
-                    <option value="" selected disabled>Select a tool...</option>
-                    <option value="tavily search">Tavily Search</option>
-                    <option value="calculate">Calculate</option>
-                </select>
-                <div class="selected-tools-list" id="selected-tools-list">
-                    <!-- Selected tools will appear here -->
+                <div id="model" class="field-select">
+                    <!-- <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    <option value="gpt-4">gpt-4</option> -->
                 </div>
             </div>
-            <!-- ADDED: Instruction textarea for response generator — shown only for Tool Calling -->
-            <div class="field-group instruction-group" id="instruction-response-generator-group" style="display: none;">
-                <label for="instruction-response-generator" class="field-label">Instruction for response generator</label>
-                <textarea id="instruction-response-generator" class="field-textarea" placeholder="Enter instruction for response generator..."></textarea>
+            <!-- <div class="field-group" id="count-group"> -->
+                <!-- <label for="count-input" class="field-label">Count</label> -->
+                <!-- <input type="number" id="count-input" class="field-input" value="10" min="1" step="1"> -->
+            <!-- </div> -->
+            <div class="field-group" id="system-prompt-group">
+                <label for="system-prompt" class="field-label">System Prompt</label>
+                <div id="system-prompt" class="field-select"> 
+                    
+                </div>
+                <!-- <textarea id="system-prompt" class="field-textarea" placeholder="Enter system prompt here..."></textarea> -->
             </div>
+            <!-- <div class="field-group tools-select-group" id="tools-select-group"> -->
+                <!-- <label for="tools-combo" class="field-label">Tools</label> -->
+                <!-- <select id="tools-combo" class="field-select"> -->
+                    <!-- <option value="" selected disabled>Select a tool...</option> -->
+                    <!-- <option value="tavily search">Tavily Search</option> -->
+                    <!-- <option value="calculate">Calculate</option> -->
+                <!-- </select> -->
+                <!-- <div class="selected-tools-list" id="selected-tools-list"> -->
+                    <!-- Selected tools will appear here -->
+                <!-- </div> -->
+            <!-- </div> -->
+            <!-- ADDED: Instruction textarea for response generator — shown only for Tool Calling -->
+            <!-- <div class="field-group instruction-group" id="instruction-response-generator-group" style="display: none;"> -->
+                <!-- <label for="instruction-response-generator" class="field-label">Instruction for response generator</label> -->
+                <!-- <textarea id="instruction-response-generator" class="field-textarea" placeholder="Enter instruction for response generator..."></textarea> -->
+            <!-- </div> -->
             <!-- Modern button group added here -->
             <div class="config-btn-group" id="main-action-group">
                 <button type="button" class="config-btn" id="btn-versioning" onclick="OnVersionningClicked()">Versioning</button>
@@ -382,6 +386,24 @@
             data = JSON.parse(document.getElementById("data-json").textContent);
             console.log(data)
             let assistant_div = document.getElementById("sidebar-brand") ; 
+            let agent_type_container = document.getElementById("agent-type") ; 
+            agent_type_container.innerHTML = `
+<pre>
+${data["agent_details"]["agent_name"]}
+</pre>
+            ` ; 
+            let model_container = document.getElementById("model") ; 
+            model_container.innerHTML = `
+<pre>
+${data["agent_details"]["model"]}
+</pre>
+            ` ; 
+            let system_prompt = document.getElementById("system-prompt") ;
+            system_prompt.innerHTML = `
+<pre>
+${data["agent_details"]["system_prompt"]}
+</pre>
+            ` 
             const assistant_name = document.createTextNode(data["agent_name"]) ; 
             assistant_div.appendChild(assistant_name) ; 
         });
@@ -747,13 +769,13 @@
     }
 
     // --- Dynamic Agent Type Form Behaviour for "React" and "Tool Calling" ---
-    document.addEventListener("DOMContentLoaded", function() {
-        var sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
-        sidebarLinks.forEach(function(link) {
-            link.addEventListener('click', function(e) {
-                logSidebarSectionName(this);
-            });
-        });
+    // document.addEventListener("DOMContentLoaded", function() {
+    //     var sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
+    //     sidebarLinks.forEach(function(link) {
+    //         link.addEventListener('click', function(e) {
+    //             logSidebarSectionName(this);
+    //         });
+    //     });
 
         // --- Agent Type dynamic rendering ---
         const agentTypeSelect = document.getElementById('agent-type');
@@ -790,29 +812,29 @@
         const selectedToolsList = document.getElementById("selected-tools-list");
         let selectedTools = [];
 
-        function renderSelectedTools() {
-            selectedToolsList.innerHTML = "";
-            if (selectedTools.length === 0) {
-                selectedToolsList.style.minHeight = "2.1em";
-            }
-            selectedTools.forEach(function(tool, idx) {
-                const chip = document.createElement("div");
-                chip.className = "tool-chip";
-                chip.textContent = capitalize(tool);
+        // function renderSelectedTools() {
+        //     selectedToolsList.innerHTML = "";
+        //     if (selectedTools.length === 0) {
+        //         selectedToolsList.style.minHeight = "2.1em";
+        //     }
+        //     selectedTools.forEach(function(tool, idx) {
+        //         const chip = document.createElement("div");
+        //         chip.className = "tool-chip";
+        //         chip.textContent = capitalize(tool);
 
-                const removeBtn = document.createElement("button");
-                removeBtn.className = "remove-tool-btn";
-                removeBtn.type = "button";
-                removeBtn.title = "Remove";
-                removeBtn.innerHTML = "&times;";
-                removeBtn.onclick = function() {
-                    selectedTools.splice(idx, 1);
-                    renderSelectedTools();
-                };
-                chip.appendChild(removeBtn);
-                selectedToolsList.appendChild(chip);
-            });
-        }
+        //         const removeBtn = document.createElement("button");
+        //         removeBtn.className = "remove-tool-btn";
+        //         removeBtn.type = "button";
+        //         removeBtn.title = "Remove";
+        //         removeBtn.innerHTML = "&times;";
+        //         removeBtn.onclick = function() {
+        //             selectedTools.splice(idx, 1);
+        //             renderSelectedTools();
+        //         };
+        //         chip.appendChild(removeBtn);
+        //         selectedToolsList.appendChild(chip);
+        //     });
+        // }
 
         function capitalize(txt) {
             if (!txt) return '';
@@ -821,15 +843,15 @@
             return txt.charAt(0).toUpperCase() + txt.slice(1);
         }
 
-        toolsCombo.addEventListener("change", function() {
-            const value = toolsCombo.value;
-            if (value && !selectedTools.includes(value)) {
-                selectedTools.push(value);
-                renderSelectedTools();
-            }
-            toolsCombo.selectedIndex = 0;
-        });
+        // toolsCombo.addEventListener("change", function() {
+        //     const value = toolsCombo.value;
+        //     if (value && !selectedTools.includes(value)) {
+        //         selectedTools.push(value);
+        //         renderSelectedTools();
+        //     }
+        //     toolsCombo.selectedIndex = 0;
+        // });
 
-        renderSelectedTools();
-    });
+        // renderSelectedTools();
+    // });
 </script>
